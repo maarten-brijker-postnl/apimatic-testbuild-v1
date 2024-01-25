@@ -1,0 +1,33 @@
+{
+  "MergeConfiguration": {
+      "MergeApis": true,
+      "MergedApiName": "PostNL API and SDK"
+  },
+  "MergeSettings": {
+    "AppendParentNameInNamingConflict": true
+  },
+  "ServerConfiguration": {
+    "DefaultEnvironment": "Production server",
+    "DefaultServer": "postnl",
+    "Environments": [
+      {
+        "Name": "Production server",
+        "Servers": [
+          {
+            "Name": "postnl",
+            "Url": "https://api.postnl.nl"
+          }
+        ]
+      },
+      {
+        "Name": "Non-Production server",
+        "Servers": [
+          {
+            "Name": "postnl",
+            "Url": "https://api-sandbox.postnl.nl"
+          }
+        ]
+      }
+    ]
+  }
+}

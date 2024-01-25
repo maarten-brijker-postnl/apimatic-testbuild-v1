@@ -7,8 +7,44 @@ toc:
   - group: Guides
     dir: guides
     # The Endpoint and Models sections contain auto-generated content. The 'generate' and 'from' directives instruct APIMatic's Docs generation service
-    # to generate and insert these sections here.
-  - generate: API Endpoints
-    from: endpoints
+    # to generate and insert these sections here. TODO: add groups
+  - group: API Endpoints
+    items:
+      - group: SEND & TRACK
+        items:
+        - group: Shipment
+          items:
+            - page: Overview
+              file: ShipmentOverview.md
+            - generate:
+              from: endpoint
+              endpoint-name: generateShipmentLabel
+              endpoint-group: Shipment
+        - group: Barcode
+          items:  
+            - generate:
+              from: endpoint
+              endpoint-name: Generate a unique barcode
+              endpoint-group: Barcode
+        - group: Labelling
+          items:  
+            - generate:
+              from: endpoint
+              endpoint-name: Generate a label and confirmation
+              endpoint-group: Labelling
+      - group: CHECKOUT & DELIVERY OPTIONS
+        items:
+        - group: Checkout
+          items:  
+            - generate:
+              from: endpoint
+              endpoint-name: Checkout
+              endpoint-group: Checkout
+        - group: Confirming
+          items:
+            - generate:
+              from: endpoint
+              endpoint-name: Confirm a shipment to PostNL
+              endpoint-group: Confirming
   - generate: Models
     from: models

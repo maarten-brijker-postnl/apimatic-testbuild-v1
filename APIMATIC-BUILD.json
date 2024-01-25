@@ -5,25 +5,13 @@
         "debug": {
             "publishReport": true
         },
-        "pageTitle": "My Portal Title",
-        "navTitle": "My Navigation Title",
+        "pageTitle": "PostNL Developer Portal: API's & SDK's",
+        "navTitle": "PostNL Developer Portal: API's & SDK's",
         "logoUrl": "static/images/logo.png",
-        "logoLink": "https://www.apimatic.io",
+        "logoLink": "https://developer.postnl.nl/",
         "languageConfig": {
             "http": {},
-            "java": {
-                "packageRepository": "Maven",
-                "packageSettings": {
-                    "GroupId": "com.apimatic",
-                    "PackageName": "sample-sdk-artifact-id",
-                    "Version": "1.0.0"
-                }
-            },
-            "csharp": {},
-            "typescript": {},
-            "php": {},
-            "python": {},
-            "ruby": {}
+            "python": {}
         },
         "headIncludes": "  <link href=\"https:\\/\\/fonts.googleapis.com\\/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i,800,800i&display=swap\" rel=\"stylesheet\">",
         "portalSettings": {

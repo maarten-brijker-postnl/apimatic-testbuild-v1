@@ -1,0 +1,841 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "PostCIF-CheckoutService",
+    "description": "Returns delivery information",
+    "version": "v1"
+  },
+  "servers": [
+    {
+      "url": "https://api-sandbox.postnl.nl",
+      "description": "Non-Production server"
+    },
+    {
+      "url": "https://api.postnl.nl",
+      "description": "Production server"
+    }
+  ],
+  "security": [
+    {
+      "APIKeyHeader": []
+    }
+  ],
+  "paths": {
+    "/shipment/v1/checkout": {
+      "post": {
+        "tags": [
+          "Checkout"
+        ],
+        "summary": "Checkout",
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/checkoutRequest"
+              },
+              "examples": {
+                "Delivery and pickup options": {
+                  "$ref": "#/components/examples/checkoutExampleFull"
+                },
+                "Delivery options only": {
+                  "$ref": "#/components/examples/checkoutExampleDelivery"
+                },
+                "Pickup options only": {
+                  "$ref": "#/components/examples/checkoutExamplePickup"
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Status object",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/checkoutResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/checkoutResponseInvalid"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid apikey",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PostCIF-CheckoutServiceUnauthorized"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Method not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PostCIF-CheckoutServiceMethodNotAllowed"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PostCIF-CheckoutServiceTooManyRequest"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/checkoutResponseError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "checkoutResponseInvalid": {
+        "type": "object",
+        "properties": {
+          "Date": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "Error": {
+            "type": "object",
+            "properties": {
+              "ErrorCode": {
+                "type": "string",
+                "example": "3000"
+              },
+              "ErrorDescription": {
+                "type": "string",
+                "example": "Request format is invalid"
+              }
+            }
+          },
+          "RequestId": {
+            "type": "string",
+            "example": "09fd61fe-0099-4349-b71d-dce5c2472be9"
+          }
+        }
+      },
+      "checkoutResponseError": {
+        "type": "object",
+        "properties": {
+          "fault": {
+            "type": "object",
+            "properties": {
+              "faultstring": {
+                "type": "string",
+                "example": "Unexpected token in object literal"
+              },
+              "detail": {
+                "type": "object",
+                "properties": {
+                  "errorcode": {
+                    "type": "string",
+                    "example": "Validation Fault"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "checkoutRequest": {
+        "type": "object",
+        "required": [
+          "OrderDate",
+          "CutOffTimes",
+          "Options",
+          "Locations",
+          "Days",
+          "Addresses"
+        ],
+        "properties": {
+          "OrderDate": {
+            "type": "string",
+            "description": "The order date of the shipment. Format dd-MM-YYYY HH:mm:ss",
+            "example": "11-07-2019 12:34:54",
+            "pattern": "^[0-3]\\d-[0-1]\\d-20\\d{2}\\s[0-2]\\d:[0-5]\\d:[0-5]\\d$"
+          },
+          "ShippingDuration": {
+            "type": "integer",
+            "description": "The amount of days it takes for a parcel to be received by PostN. If you delivery the parcel the same day as the order is placed on the webshop, please use the value of 1. A value of 2 means the parcel will arrive at PostNL a day later etc.",
+            "example": 1
+          },
+          "CutOffTimes": {
+            "type": "array",
+            "description": "Array of CutOffTimes",
+            "items": {
+              "type": "object",
+              "required": [
+                "Day"
+              ],
+              "properties": {
+                "Day": {
+                  "type": "string",
+                  "description": "The day for which the cutoff time applies. 00 is your default cutoff that applies to all otherwise not specified days, 01 to 07 is Monday to Sunday.",
+                  "enum": [
+                    "00",
+                    "01",
+                    "02",
+                    "03",
+                    "04",
+                    "05",
+                    "06",
+                    "07"
+                  ],
+                  "example": "00"
+                },
+                "Available": {
+                  "type": "boolean",
+                  "description": "Specifies whether you are available to process shipments during the selected day",
+                  "example": true
+                },
+                "Type": {
+                  "type": "string",
+                  "description": "Specifies the type belonging to the cutoff time.",
+                  "enum": [
+                    "Regular",
+                    "Sameday",
+                    "Today"
+                  ],
+                  "example": "Regular"
+                },
+                "Time": {
+                  "type": "string",
+                  "description": "Specifies the cutoff time (mandatory when Available is true)",
+                  "example": "23:00:00",
+                  "pattern": "^[0-2]\\d:[0-5]\\d:[0-5]\\d$"
+                }
+              }
+            }
+          },
+          "HolidaySorting": {
+            "type": "boolean",
+            "description": "Specifies whether you are available to ship parcels to PostNL during holidays",
+            "example": true
+          },
+          "Options": {
+            "type": "array",
+            "description": "Specifies the delivery and pickup options.",
+            "items": {
+              "type": "string",
+              "enum": [
+                "Daytime",
+                "Evening",
+                "Sunday",
+                "Sameday",
+                "Today",
+                "08:00-10:00",
+                "08:00-12:00",
+                "08:00-17:00",
+                "Pickup"
+              ]
+            },
+            "example": [
+              "Daytime",
+              "Evening",
+              "Pickup"
+            ]
+          },
+          "Locations": {
+            "type": "integer",
+            "description": "Specifies the number of locations you want returned. This can be a value of 1-3",
+            "minimum": 1,
+            "maximum": 3,
+            "example": 2
+          },
+          "Days": {
+            "type": "integer",
+            "description": "Specifies the number of days for which the timeframes are returned. This can be a value of 1-9",
+            "minimum": 1,
+            "maximum": 9,
+            "example": 3
+          },
+          "Addresses": {
+            "type": "array",
+            "description": "Array of addresses",
+            "items": {
+              "type": "object",
+              "required": [
+                "AddressType",
+                "HouseNr",
+                "Zipcode",
+                "Countrycode"
+              ],
+              "properties": {
+                "AddressType": {
+                  "type": "string",
+                  "description": "Address type. 01 is for the receiver address, 02 is for the sender address.",
+                  "enum": [
+                    "01",
+                    "02"
+                  ],
+                  "example": "01"
+                },
+                "Street": {
+                  "type": "string",
+                  "description": "Street name; for Belgian addresses, it is strongly recommended to fill in the  street value",
+                  "example": "Molengraaffplantsoen",
+                  "maxLength": 35
+                },
+                "HouseNr": {
+                  "type": "integer",
+                  "description": "The house number of the delivery address",
+                  "example": 74
+                },
+                "HouseNrExt": {
+                  "type": "string",
+                  "description": "House number extension",
+                  "example": "bis",
+                  "maxLength": 7
+                },
+                "Zipcode": {
+                  "type": "string",
+                  "description": "Zipcode of the address",
+                  "minLength": 4,
+                  "maxLength": 6,
+                  "example": "3571ZZ"
+                },
+                "City": {
+                  "type": "string",
+                  "description": "City of the address",
+                  "example": "Utrecht",
+                  "maxLength": 35
+                },
+                "Countrycode": {
+                  "type": "string",
+                  "description": "ISO2 country code. Limited to NL and BE.",
+                  "enum": [
+                    "NL",
+                    "BE"
+                  ],
+                  "example": "NL"
+                }
+              }
+            }
+          }
+        }
+      },
+      "checkoutResponse": {
+        "type": "object",
+        "properties": {
+          "DeliveryOptions": {
+            "type": "array",
+            "description": "Array of delivery options",
+            "items": {
+              "type": "object",
+              "properties": {
+                "DeliveryDate": {
+                  "type": "string",
+                  "description": "The possible delivery date",
+                  "example": "09-07-2019"
+                },
+                "Timeframe": {
+                  "type": "array",
+                  "description": "Array of timeframes",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "From": {
+                        "type": "string",
+                        "description": "Format hh:mm:ss",
+                        "example": "18:00:00"
+                      },
+                      "To": {
+                        "type": "string",
+                        "description": "Format hh:mm:ss",
+                        "example": "22:30:00"
+                      },
+                      "Options": {
+                        "type": "array",
+                        "description": "The delivery options applicable to the timeframe information. See [Delivery Options](#tag/Reference-codes/Delivery-options) for possible values.",
+                        "items": {
+                          "type": "string",
+                          "enum": [
+                            "Daytime",
+                            "Evening",
+                            "Sunday",
+                            "Sameday",
+                            "Today",
+                            "08:00-10:00",
+                            "08:00-12:00",
+                            "08:00-17:00"
+                          ],
+                          "example": "Daytime"
+                        }
+                      },
+                      "ShippingDate": {
+                        "type": "string",
+                        "description": "The date when you need to deliver the shipment to PostNL to ensure the expected delivery date is achieved. Will be returned as 'null' if not calculated",
+                        "example": "08-07-2019"
+                      },
+                      "Sustainability": {
+                        "type": "object",
+                        "description": "Sustainability score; see [Sustainability codes](#tag/Reference-codes/Sustainability-codes) for possible values.",
+                        "properties": {
+                          "Code": {
+                            "type": "string",
+                            "description": "Sustainability score code",
+                            "example": "02",
+                            "enum": [
+                              "00",
+                              "01",
+                              "02",
+                              "03"
+                            ]
+                          },
+                          "Description": {
+                            "type": "string",
+                            "description": "Sustainability score code description",
+                            "example": "Sustainable option"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "PickupOptions": {
+            "type": "array",
+            "description": "Array of possible pickup options",
+            "items": {
+              "type": "object",
+              "properties": {
+                "PickupDate": {
+                  "type": "string",
+                  "description": "Date from which the parcel can be picked up at the PostNL location",
+                  "example": "09-07-2019"
+                },
+                "ShippingDate": {
+                  "type": "string",
+                  "description": "The date when you need to deliver the shipment to PostNL to ensure the expected delivery date is achieved. Will be returned as 'null' if not calculated",
+                  "example": "08-07-2019"
+                },
+                "Option": {
+                  "type": "string",
+                  "description": "The pickup option",
+                  "example": "Pickup"
+                },
+                "Locations": {
+                  "type": "array",
+                  "description": "Array of pickup locations",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "Address": {
+                        "type": "object",
+                        "description": "The pickup location address",
+                        "properties": {
+                          "Street": {
+                            "type": "string",
+                            "description": "The pickup location street",
+                            "example": "Siriusdreef"
+                          },
+                          "Zipcode": {
+                            "type": "string",
+                            "description": "The pickup location zipcode",
+                            "example": "2132WT"
+                          },
+                          "HouseNr": {
+                            "type": "integer",
+                            "description": "The pickup location housenumber",
+                            "example": 42
+                          },
+                          "HouseNrExt": {
+                            "type": "string",
+                            "description": "The pickup location housenumber extension",
+                            "example": "-60"
+                          },
+                          "Countrycode": {
+                            "type": "string",
+                            "description": "The pickup location country",
+                            "example": "NL"
+                          },
+                          "CompanyName": {
+                            "type": "string",
+                            "description": "The pickup location company name",
+                            "example": "Pickup company BV"
+                          }
+                        }
+                      },
+                      "PickupTime": {
+                        "type": "string",
+                        "description": "Time from when the parcel can be retrieved at the pickup location",
+                        "example": "15:00"
+                      },
+                      "OpeningHours": {
+                        "type": "object",
+                        "description": "The standard opening hours of the pickup location",
+                        "properties": {
+                          "Monday": {
+                            "type": "object",
+                            "properties": {
+                              "From": {
+                                "type": "string",
+                                "example": "08:30:00"
+                              },
+                              "To": {
+                                "type": "string",
+                                "example": "22:30:00"
+                              }
+                            }
+                          },
+                          "Tuesday": {
+                            "type": "object",
+                            "properties": {
+                              "From": {
+                                "type": "string",
+                                "example": "08:30:00"
+                              },
+                              "To": {
+                                "type": "string",
+                                "example": "22:30:00"
+                              }
+                            }
+                          },
+                          "Wednesday": {
+                            "type": "object",
+                            "properties": {
+                              "From": {
+                                "type": "string",
+                                "example": "08:30:00"
+                              },
+                              "To": {
+                                "type": "string",
+                                "example": "22:30:00"
+                              }
+                            }
+                          },
+                          "Thursday": {
+                            "type": "object",
+                            "properties": {
+                              "From": {
+                                "type": "string",
+                                "example": "08:30:00"
+                              },
+                              "To": {
+                                "type": "string",
+                                "example": "22:30:00"
+                              }
+                            }
+                          },
+                          "Friday": {
+                            "type": "object",
+                            "properties": {
+                              "From": {
+                                "type": "string",
+                                "example": "08:30:00"
+                              },
+                              "To": {
+                                "type": "string",
+                                "example": "22:30:00"
+                              }
+                            }
+                          },
+                          "Saturday": {
+                            "type": "object",
+                            "properties": {
+                              "From": {
+                                "type": "string",
+                                "example": "08:30:00"
+                              },
+                              "To": {
+                                "type": "string",
+                                "example": "17:30:00"
+                              }
+                            }
+                          },
+                          "Sunday": {
+                            "type": "object",
+                            "properties": {
+                              "From": {
+                                "type": "string",
+                                "example": "08:30:00"
+                              },
+                              "To": {
+                                "type": "string",
+                                "example": "12:30:00"
+                              }
+                            }
+                          }
+                        }
+                      },
+                      "Distance": {
+                        "type": "integer",
+                        "description": "The calculated distance (in meters) between the location specified and the address provided in the request",
+                        "example": 234
+                      },
+                      "LocationCode": {
+                        "type": "string",
+                        "description": "The location identifier",
+                        "example": "8101163043"
+                      },
+                      "PartnerID": {
+                        "type": "string",
+                        "description": "The partner identifier; not used anymore",
+                        "example": "PNPNL-01"
+                      },
+                      "Sustainability": {
+                        "type": "object",
+                        "description": "Sustainability score; see [Sustainability codes](#tag/Reference-codes/Sustainability-codes) for possible values.",
+                        "properties": {
+                          "Code": {
+                            "type": "string",
+                            "description": "Sustainability score code",
+                            "example": "02",
+                            "enum": [
+                              "00",
+                              "01",
+                              "02",
+                              "03"
+                            ]
+                          },
+                          "Description": {
+                            "type": "string",
+                            "description": "Sustainability score code description",
+                            "example": "Sustainable option"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "Warnings": {
+            "type": "array",
+            "description": "An array of warnings",
+            "items": {
+              "type": "object",
+              "properties": {
+                "DeliveryDate": {
+                  "type": "string",
+                  "description": "Deliverydate that triggered the warning",
+                  "example": "07-07-2019"
+                },
+                "Code": {
+                  "type": "string",
+                  "description": "Warning code (for a possible list of warnings, see the generic error codes page)",
+                  "example": "5034"
+                },
+                "Description": {
+                  "type": "string",
+                  "description": "Warning description (for a possible list of warnings, see the generic error codes page)",
+                  "example": "No delivery option found on date"
+                },
+                "Options": {
+                  "type": "array",
+                  "description": "The option that triggered the warning",
+                  "items": {
+                    "type": "string",
+                    "enum": [
+                      "Daytime",
+                      "Evening",
+                      "Sameday",
+                      "Sunday",
+                      "Today",
+                      "08:00-10:00",
+                      "08:00-12:00",
+                      "08:00-17:00",
+                      "08:00-09:00",
+                      "Pickup"
+                    ],
+                    "example": "Daytime"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "PostCIF-CheckoutServiceUnauthorized": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "example": "Failed to resolve API Key variable 'request.header.apikey'"
+          },
+          "http_status_code": {
+            "type": "number",
+            "example": 401
+          }
+        }
+      },
+      "PostCIF-CheckoutServiceMethodNotAllowed": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "example": "Only POST requests allowed"
+          },
+          "http_status_code": {
+            "type": "number",
+            "example": 405
+          }
+        }
+      },
+      "PostCIF-CheckoutServiceTooManyRequest": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "example": "Too many requests. Rate limit exceeded!"
+          },
+          "http_status_code": {
+            "type": "number",
+            "example": 429
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "APIKeyHeader": {
+        "type": "apiKey",
+        "name": "apikey",
+        "in": "header"
+      }
+    },
+    "examples": {
+      "checkoutExampleFull": {
+        "value": {
+          "OrderDate": "24-02-2021 12:00:00",
+          "ShippingDuration": "1",
+          "CutOffTimes": [
+            {
+              "Day": "00",
+              "Available": "true",
+              "Type": "Regular",
+              "Time": "20:00:00"
+            },
+            {
+              "Day": "00",
+              "Available": "true",
+              "Type": "Today",
+              "Time": "12:00:00"
+            }
+          ],
+          "HolidaySorting": "true",
+          "Options": [
+            "Daytime",
+            "Evening",
+            "Today",
+            "Sunday",
+            "Pickup"
+          ],
+          "Locations": "2",
+          "Days": "3",
+          "Addresses": [
+            {
+              "AddressType": "01",
+              "Street": "Molengraaffplantsoen",
+              "HouseNr": "74",
+              "Zipcode": "3571ZZ",
+              "City": "Utrecht",
+              "Countrycode": "NL"
+            }
+          ]
+        }
+      },
+      "checkoutExampleDelivery": {
+        "value": {
+          "OrderDate": "24-02-2021 12:00:00",
+          "ShippingDuration": "1",
+          "CutOffTimes": [
+            {
+              "Day": "00",
+              "Available": "true",
+              "Type": "Regular",
+              "Time": "20:00:00"
+            },
+            {
+              "Day": "00",
+              "Available": "true",
+              "Type": "Today",
+              "Time": "12:00:00"
+            }
+          ],
+          "HolidaySorting": "true",
+          "Options": [
+            "Daytime",
+            "Evening",
+            "Today",
+            "Sunday"
+          ],
+          "Days": "3",
+          "Addresses": [
+            {
+              "AddressType": "01",
+              "Street": "Molengraaffplantsoen",
+              "HouseNr": "74",
+              "Zipcode": "3571ZZ",
+              "City": "Utrecht",
+              "Countrycode": "NL"
+            }
+          ]
+        }
+      },
+      "checkoutExamplePickup": {
+        "value": {
+          "OrderDate": "24-02-2021 12:00:00",
+          "ShippingDuration": "1",
+          "CutOffTimes": [
+            {
+              "Day": "00",
+              "Available": "true",
+              "Type": "Regular",
+              "Time": "20:00:00"
+            }
+          ],
+          "HolidaySorting": "true",
+          "Options": [
+            "Pickup"
+          ],
+          "Locations": "2",
+          "Addresses": [
+            {
+              "AddressType": "01",
+              "Street": "Molengraaffplantsoen",
+              "HouseNr": "74",
+              "Zipcode": "3571ZZ",
+              "City": "Utrecht",
+              "Countrycode": "NL"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,261 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "Barcode API",
+    "description": "Generate a unique barcode to use for your shipping label",
+    "version": "v1_1"
+  },
+  "servers": [
+    {
+      "url": "https://api-sandbox.postnl.nl",
+      "description": "Non-Production server"
+    },
+    {
+      "url": "https://api.postnl.nl",
+      "description": "Production server"
+    }
+  ],
+  "paths": {
+    "/shipment/v1_1/barcode": {
+      "get": {
+        "tags": [
+          "Barcode"
+        ],
+        "summary": "Generate a unique barcode",
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "description": "Request example:\n```\ncurl -X GET \"https://api-sandbox.postnl.nl/shipment/v1_1/barcode?CustomerCode=DEVC&amp;CustomerNumber=11223344&amp;Type=3S&amp;Serie=000000000-999999999&amp;Range=NL\" \\\n -H \"Accept: application/json\" \\\n -H \"apikey: APIKEY-HERE\" \n```\n",
+        "parameters": [
+          {
+            "name": "CustomerCode",
+            "in": "query",
+            "description": "The customer code for which you want a barcode to be generated",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "DEVC"
+            }
+          },
+          {
+            "name": "CustomerNumber",
+            "in": "query",
+            "description": "The customer code for which you want a barcode to be generated",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "11223344"
+            }
+          },
+          {
+            "name": "Type",
+            "in": "query",
+            "description": "The barcode type that you want to be generated",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "3S",
+              "enum": [
+                "2S",
+                "3S",
+                "CC",
+                "CP",
+                "CD",
+                "CF",
+                "LA",
+                "RI",
+                "UE"
+              ]
+            }
+          },
+          {
+            "name": "Serie",
+            "in": "query",
+            "description": "Barcode serie in the format '###000000-###000000', for example 100000-20000. The range must consist of a minimal difference of 100.000. It is allowed to add extra leading zeros at the beginning of the serie. See [Guidelines](https://developer.postnl.nl/browse-apis/send-and-track/barcode-webservice/) for more information.",
+            "schema": {
+              "type": "string",
+              "minLength": 6,
+              "maxLength": 9,
+              "example": "000000000-999999999"
+            }
+          },
+          {
+            "name": "Range",
+            "in": "query",
+            "description": "Only used for International Mail and Packet products (PEPS) shipments (with type LA, RI, UE). Identifying the issuing postal administration's country (NL in this case).",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "example": "NL"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A barcode",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/barcodeResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/barcodeResponseInvalid"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/barcodeResponseError"
+                },
+                "example": {
+                  "fault": {
+                    "faultstring": "Invalid ApiKey",
+                    "detail": {
+                      "errorcode": "oauth.v2.InvalidApiKey"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Method not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/barcodeMethodNotAllowed"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/barcodeTooManyRequest"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/barcodeResponseError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "barcodeResponse": {
+        "type": "object",
+        "properties": {
+          "Barcode": {
+            "type": "string",
+            "example": "3SDEVC903942795"
+          }
+        }
+      },
+      "barcodeResponseError": {
+        "type": "object",
+        "properties": {
+          "fault": {
+            "type": "object",
+            "properties": {
+              "faultstring": {
+                "type": "string",
+                "example": "Unexpected token in object literal"
+              },
+              "detail": {
+                "type": "object",
+                "properties": {
+                  "errorcode": {
+                    "type": "string",
+                    "example": "Validation Fault"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "barcodeResponseInvalid": {
+        "type": "object",
+        "properties": {
+          "errors": {
+            "type": "array",
+            "description": "A list of errors. See [Error codes](#tag/Error-codes) for possible values.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "ErrorMsg": {
+                  "type": "string",
+                  "description": "The error message",
+                  "example": "Too many numbers in series"
+                },
+                "ErrorNumber": {
+                  "type": "string",
+                  "description": "The error code",
+                  "example": "8"
+                }
+              }
+            }
+          }
+        }
+      },
+      "barcodeMethodNotAllowed": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "example": "Only GET & POST requests allowed"
+          },
+          "http_status_code": {
+            "type": "number",
+            "example": 405
+          }
+        }
+      },
+      "barcodeTooManyRequest": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "example": "Too many requests. Rate limit exceeded!"
+          },
+          "http_status_code": {
+            "type": "number",
+            "example": 429
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "APIKeyHeader": {
+        "type": "apiKey",
+        "name": "apikey",
+        "in": "header"
+      }
+    }
+  }
+}

@@ -1,0 +1,1562 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "Labelling API",
+    "description": "Generate a label and (optional) confirmation",
+    "version": "v2_2"
+  },
+  "servers": [
+    {
+      "url": "https://api-sandbox.postnl.nl",
+      "description": "Non-Production server"
+    },
+    {
+      "url": "https://api.postnl.nl",
+      "description": "Production server"
+    }
+  ],
+  "security": [
+    {
+      "APIKeyHeader": []
+    }
+  ],
+  "paths": {
+    "/shipment/v2_2/label": {
+      "post": {
+        "tags": [
+          "Labelling",
+          "Shipment"
+        ],
+        "summary": "Generate a label and confirmation",
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "confirm",
+            "in": "query",
+            "description": "With the Confirm boolean in the request, you can determine if you want to confirm the shipment in the same call or not. If the Boolean variable is true the shipment will be preannounced. If this is set to false, then an additional Confirming API request needs to be made.",
+            "schema": {
+              "type": "boolean",
+              "default": true
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/labellingRequest"
+              },
+              "examples": {
+                "Standard product request": {
+                  "$ref": "#/components/examples/labellingExampleRequestDefault"
+                },
+                "Evening delivery request": {
+                  "$ref": "#/components/examples/labellingExampleRequestEvening"
+                },
+                "International (non-EU) shipment request": {
+                  "$ref": "#/components/examples/labellingExampleRequestCustoms"
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "A Label",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/labellingResponse"
+                },
+                "examples": {
+                  "Standard response": {
+                    "$ref": "#/components/examples/labellingExampleResponseStandard"
+                  },
+                  "Multi-label response": {
+                    "$ref": "#/components/examples/labellingExampleResponseMultilabel"
+                  },
+                  "Merged response": {
+                    "$ref": "#/components/examples/labellingExampleResponseMerged"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Error payload",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/labellingResponseInvalid"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid apikey",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/labellingUnauthorized"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Method not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/labellingMethodNotAllowed"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/labellingTooManyRequest"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/labellingResponseError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "APIKeyHeader": {
+        "type": "apiKey",
+        "name": "apikey",
+        "in": "header"
+      }
+    },
+    "schemas": {
+      "labellingRequest": {
+        "required": [
+          "Customer",
+          "Message",
+          "Shipments"
+        ],
+        "type": "object",
+        "properties": {
+          "Customer": {
+            "required": [
+              "CustomerCode",
+              "CustomerNumber"
+            ],
+            "type": "object",
+            "properties": {
+              "Address": {
+                "required": [
+                  "AddressType",
+                  "City",
+                  "Countrycode"
+                ],
+                "type": "object",
+                "properties": {
+                  "AddressType": {
+                    "pattern": "^02$",
+                    "type": "string",
+                    "description": "Address 02 is mandatory. It can either be placed in the Customer segment or in the Shipment segment. Note that if you put it in the Shipment segment, it should go into all Shipment segments.",
+                    "example": "02"
+                  },
+                  "Area": {
+                    "type": "string",
+                    "minLength": 0,
+                    "maxLength": 35,
+                    "description": "Area of the address",
+                    "example": "Beukenhorst"
+                  },
+                  "Buildingname": {
+                    "minLength": 0,
+                    "maxLength": 35,
+                    "type": "string",
+                    "description": "Building name of the address",
+                    "example": "AA"
+                  },
+                  "City": {
+                    "minLength": 0,
+                    "maxLength": 35,
+                    "type": "string",
+                    "description": "City of the address",
+                    "example": "Hoofddorp"
+                  },
+                  "CompanyName": {
+                    "minLength": 0,
+                    "maxLength": 35,
+                    "type": "string",
+                    "description": "This field has a dependency with the field Name. One of both fields must be filled mandatory; using both fields is also allowed. Mandatory when AddressType is 09.",
+                    "example": "PostNL"
+                  },
+                  "Countrycode": {
+                    "pattern": "^[A-Z]{2}$",
+                    "type": "string",
+                    "description": "The ISO2 country codes",
+                    "example": "NL"
+                  },
+                  "Department": {
+                    "minLength": 0,
+                    "maxLength": 35,
+                    "type": "string",
+                    "description": "Send to specific department of a company",
+                    "example": "IT"
+                  },
+                  "Doorcode": {
+                    "minLength": 0,
+                    "maxLength": 35,
+                    "type": "string",
+                    "description": "Door code of address. Mandatory for some international shipments.",
+                    "example": "123"
+                  },
+                  "FirstName": {
+                    "minLength": 0,
+                    "maxLength": 35,
+                    "type": "string",
+                    "description": "Remark: please add FirstName and Name (lastname) of the receiver to improve the parcel tracking experience of your customer. ",
+                    "example": "Peter"
+                  },
+                  "Floor": {
+                    "minLength": 0,
+                    "maxLength": 35,
+                    "type": "string",
+                    "description": "Send to specific floor of a company",
+                    "example": "4th floor"
+                  },
+                  "HouseNr": {
+                    "minLength": 0,
+                    "maxLength": 35,
+                    "type": "string",
+                    "description": "Mandatory for shipments to Benelux. Max. length is 5 characters (only for Benelux addresses). For Benelux addresses,this field should always be numeric.",
+                    "example": "42"
+                  },
+                  "HouseNrExt": {
+                    "minLength": 0,
+                    "maxLength": 35,
+                    "type": "string",
+                    "description": "House number extension ",
+                    "example": "bis"
+                  },
+                  "Name": {
+                    "minLength": 0,
+                    "maxLength": 35,
+                    "type": "string",
+                    "description": "Last name of person. This field has a dependency with the field CompanyName. One of both fields must be filled mandatory; using both fields is also allowed. Remark: please add FirstName and Name (lastname) of the receiver to improve the parcel tracking experience of your customer. ",
+                    "example": "de Ruiter"
+                  },
+                  "Region": {
+                    "minLength": 0,
+                    "maxLength": 35,
+                    "type": "string",
+                    "description": "Region of the address",
+                    "example": "Noord-Holland"
+                  },
+                  "Street": {
+                    "minLength": 0,
+                    "maxLength": 95,
+                    "type": "string",
+                    "description": "This field has a dependency with the field StreetHouseNrExt. One of both fields must be filled mandatory; using both fields simultaneously is discouraged. ",
+                    "example": "Siriusdreef"
+                  },
+                  "StreetHouseNrExt": {
+                    "type": "string",
+                    "description": "Combination of Street, HouseNr and HouseNrExt. Please see [Guidelines](https://developer.postnl.nl/browse-apis/send-and-track/labelling-webservice/) for the explanation.",
+                    "example": null
+                  },
+                  "Zipcode": {
+                    "minLength": 0,
+                    "maxLength": 17,
+                    "type": "string",
+                    "description": "Zipcode of the address. Mandatory for shipments to Benelux. Max length (NL) 6 characters,(BE;LU) 4 numeric characters",
+                    "example": "2132WT"
+                  }
+                }
+              },
+              "CollectionLocation": {
+                "type": "string",
+                "description": "Code of delivery location at PostNL Pakketten",
+                "example": "123456",
+                "minLength": 6,
+                "maxLength": 6
+              },
+              "ContactPerson": {
+                "type": "string",
+                "description": "Name of customer contact person",
+                "example": "Janssen"
+              },
+              "CustomerCode": {
+                "type": "string",
+                "description": "Customer code as known at PostNL Pakketten",
+                "example": "DEVC",
+                "minLength": 1,
+                "maxLength": 6
+              },
+              "CustomerNumber": {
+                "type": "string",
+                "description": "Name of customer contact person",
+                "example": "11223344",
+                "minLength": 1,
+                "maxLength": 8
+              },
+              "Email": {
+                "type": "string",
+                "description": "E-mail address of the customer ",
+                "example": "email@company.com",
+                "minLength": 0,
+                "maxLength": 50
+              },
+              "Name": {
+                "type": "string",
+                "description": "Customer name",
+                "example": "Janssen",
+                "minLength": 0,
+                "maxLength": 35
+              }
+            }
+          },
+          "LabelSignature": {
+            "type": "string",
+            "format": "byte",
+            "description": "GIF image of the signature (as a base64 encoded string) max size: 280x60 mm (1058x226 pixels). This can be used to automatically sign the customs forms. The value of this element can have a maximum size of 65536 characters. Note that the total request can have a maximum size of 200KB. Larger requests will not be accepted by the server for performance reasons. Requests that exceed this limit will not return a validation error,but a HTTP 404 error.",
+            "example": null
+          },
+          "Message": {
+            "required": [
+              "MessageID",
+              "MessageTimeStamp",
+              "Printertype"
+            ],
+            "type": "object",
+            "properties": {
+              "MessageID": {
+                "type": "string",
+                "description": "ID of the message",
+                "example": "1",
+                "minLength": 1,
+                "maxLength": 12
+              },
+              "MessageTimeStamp": {
+                "pattern": "^[0-3]\\d-[01]\\d-[12]\\d{3}\\s[0-2]\\d:[0-5]\\d:[0-5]\\d$",
+                "type": "string",
+                "description": "Date/time of sending the message. Format: dd-mm-yyyy hh:mm:ss",
+                "example": "29-06-2016 12:00:00"
+              },
+              "Printertype": {
+                "type": "string",
+                "description": "Printer type that will be used to process the label, e.g. Zebra printer or PDF See [Printer types](#tag/Reference-codes/Printer-types) for the available printer types.",
+                "example": "GraphicFile|PDF"
+              }
+            }
+          },
+          "Shipments": {
+            "type": "array",
+            "description": "List of 1 or more Shipments. At least 1 shipment is required.",
+            "items": {
+              "required": [
+                "Addresses",
+                "Barcode",
+                "Dimension",
+                "ProductCodeDelivery"
+              ],
+              "type": "object",
+              "properties": {
+                "Addresses": {
+                  "type": "array",
+                  "description": "List of 1 or more Address type elements. At least 1 address type is mandatory. See [Address types](#tag/Reference-codes/Address-types) for the available types.",
+                  "items": {
+                    "required": [
+                      "AddressType",
+                      "Countrycode"
+                    ],
+                    "type": "object",
+                    "properties": {
+                      "AddressType": {
+                        "pattern": "^\\d{2}$",
+                        "type": "string",
+                        "description": "Type of the address. This is a code. You can find the possible values at [Address types](#tag/Reference-codes/Address-types)",
+                        "default": "01"
+                      },
+                      "Area": {
+                        "type": "string",
+                        "minLength": 0,
+                        "maxLength": 35,
+                        "description": "Area of the address",
+                        "example": "Tuindorp-Oost"
+                      },
+                      "Buildingname": {
+                        "minLength": 0,
+                        "maxLength": 35,
+                        "type": "string",
+                        "description": "Building name of the address",
+                        "example": "Gebouw 1"
+                      },
+                      "City": {
+                        "minLength": 0,
+                        "maxLength": 35,
+                        "type": "string",
+                        "description": "City of the address",
+                        "example": "Utrecht"
+                      },
+                      "CompanyName": {
+                        "minLength": 0,
+                        "maxLength": 35,
+                        "type": "string",
+                        "description": "This field has a dependency with the field Name. One of both fields must be filled mandatory; using both fields is also allowed. Mandatory when AddressType is 09.",
+                        "example": "Janssen B.V."
+                      },
+                      "Countrycode": {
+                        "pattern": "^[A-Z]{2}$",
+                        "type": "string",
+                        "description": "The ISO2 country codes",
+                        "example": "NL"
+                      },
+                      "Department": {
+                        "minLength": 0,
+                        "maxLength": 35,
+                        "type": "string",
+                        "description": "Send to specific department of a company",
+                        "example": "Finance"
+                      },
+                      "Doorcode": {
+                        "minLength": 0,
+                        "maxLength": 35,
+                        "type": "string",
+                        "description": "Door code of address. Mandatory for some international shipments.",
+                        "example": "3345"
+                      },
+                      "FirstName": {
+                        "minLength": 0,
+                        "maxLength": 35,
+                        "type": "string",
+                        "description": "Remark: please add FirstName and Name (lastname) of the receiver to improve the parcel tracking experience of your customer. ",
+                        "example": "Henk"
+                      },
+                      "Floor": {
+                        "minLength": 0,
+                        "maxLength": 35,
+                        "type": "string",
+                        "description": "Send to specific floor of a company",
+                        "example": "2nd floor"
+                      },
+                      "HouseNr": {
+                        "minLength": 0,
+                        "maxLength": 35,
+                        "type": "string",
+                        "description": "Mandatory for shipments to Benelux. Max. length is 5 characters (only for Benelux addresses). For Benelux addresses,this field should always be numeric.",
+                        "example": "74"
+                      },
+                      "HouseNrExt": {
+                        "minLength": 0,
+                        "maxLength": 35,
+                        "type": "string",
+                        "description": "House number extension ",
+                        "example": "A"
+                      },
+                      "Name": {
+                        "minLength": 0,
+                        "maxLength": 35,
+                        "type": "string",
+                        "description": "Last name of person. This field has a dependency with the field CompanyName. One of both fields must be filled mandatory; using both fields is also allowed. Remark: please add FirstName and Name (lastname) of the receiver to improve the parcel tracking experience of your customer. ",
+                        "example": "de Graaff"
+                      },
+                      "Region": {
+                        "minLength": 0,
+                        "maxLength": 35,
+                        "type": "string",
+                        "description": "Region of the address",
+                        "example": "Utrecht"
+                      },
+                      "Street": {
+                        "minLength": 0,
+                        "maxLength": 95,
+                        "type": "string",
+                        "description": "This field has a dependency with the field StreetHouseNrExt. One of both fields must be filled mandatory. Using both fields simultaneously is discouraged. ",
+                        "example": "Molengraaffplantsoen"
+                      },
+                      "StreetHouseNrExt": {
+                        "type": "string",
+                        "description": "Combination of Street, HouseNr and HouseNrExt. Please see [Guidelines](https://developer.postnl.nl/browse-apis/send-and-track/labelling-webservice/) for the explanation.",
+                        "example": null
+                      },
+                      "Zipcode": {
+                        "minLength": 0,
+                        "maxLength": 17,
+                        "type": "string",
+                        "description": "Zipcode of the address. Mandatory for shipments to Benelux. Max length (NL) 6 characters,(BE;LU) 4 numeric characters",
+                        "example": "3571ZZ"
+                      }
+                    }
+                  }
+                },
+                "Amounts": {
+                  "type": "array",
+                  "description": "List of amount types. An amount represents a value of the shipment. Amount type 01 mandatory for COD-shipments, Amount type 02 mandatory for domestic insured shipments. Please see [Amount types](#tag/Reference-codes/Amount-types) for the available types.",
+                  "items": {
+                    "required": [
+                      "AmountType",
+                      "Value"
+                    ],
+                    "type": "object",
+                    "properties": {
+                      "AmountType": {
+                        "pattern": "^\\d{2}$",
+                        "type": "string",
+                        "description": "Amount type. Please see [Amount types](#tag/Reference-codes/Amount-types) for the available types.",
+                        "example": "01"
+                      },
+                      "AccountName": {
+                        "minLength": 0,
+                        "maxLength": 35,
+                        "type": "string",
+                        "description": "Name of bank account owner ",
+                        "example": "C. de Ruiter"
+                      },
+                      "BIC": {
+                        "minLength": 8,
+                        "maxLength": 11,
+                        "type": "string",
+                        "description": "BIC number,optional for COD shipments (mandatory for bank account number other than originating in The Netherlands)",
+                        "example": "RABONL2UXXX"
+                      },
+                      "Currency": {
+                        "pattern": "^[A-Z]{3}$",
+                        "type": "string",
+                        "description": "Currency code according ISO 4217. E.g. EUR",
+                        "example": "EUR"
+                      },
+                      "IBAN": {
+                        "minLength": 15,
+                        "maxLength": 31,
+                        "type": "string",
+                        "description": "IBAN bank account number,mandatory for COD shipments. Dutch IBAN numbers are 18 characters ",
+                        "example": "NL00RABO0123456789"
+                      },
+                      "Reference": {
+                        "minLength": 0,
+                        "maxLength": 35,
+                        "type": "string",
+                        "description": "Personal payment reference",
+                        "example": "1234-5678"
+                      },
+                      "TransactionNumber": {
+                        "minLength": 0,
+                        "maxLength": 35,
+                        "type": "string",
+                        "description": "Transaction number",
+                        "example": "1234"
+                      },
+                      "Value": {
+                        "minimum": 0,
+                        "type": "number",
+                        "format": "double",
+                        "description": "Money value in EUR (unless value Currency is specified for another currency). Value format (N6.2): #####0.00 (2 digits behind decimal dot). Mandatory for COD, Insured products (with the exception of certain productcodes with a standard insured amount).",
+                        "example": 20.35
+                      }
+                    }
+                  }
+                },
+                "Barcode": {
+                  "minLength": 11,
+                  "maxLength": 15,
+                  "type": "string",
+                  "description": "Barcode of the shipment. This is a unique value. Note: If you leave this attribute out of your request an unique barcode will be generated automatically.",
+                  "example": "3SDEVC2016112104"
+                },
+                "CodingText": {
+                  "minLength": 0,
+                  "maxLength": 35,
+                  "type": "string",
+                  "description": "Code used for logistic purposes (usually generated by the service itself and returned in the response). Please note that this must be provided when  using the Confirm API to confirm shipments where coding texts are required (e.g. letterbox parcels).",
+                  "example": "#2426A3A#03#0306#"
+                },
+                "CollectionTimeStampStart": {
+                  "pattern": "^([0-3]\\d-[01]\\d-[12]\\d{3}\\s+)[0-2]\\d:[0-5]\\d(:[0-5]\\d)$",
+                  "type": "string",
+                  "description": "Starting date/time of the collection of the shipment. Format: dd-MM-yyyy hh:mm:ss",
+                  "example": "04-12-2022 17:00:00"
+                },
+                "CollectionTimeStampEnd": {
+                  "pattern": "^([0-3]\\d-[01]\\d-[12]\\d{3}\\s+)[0-2]\\d:[0-5]\\d(:[0-5]\\d)$",
+                  "type": "string",
+                  "description": "Ending date/time of the collection of the shipment. Format: dd-MM-yyyy hh:mm:ss",
+                  "example": "04-12-2022 19:00:00"
+                },
+                "Contacts": {
+                  "type": "array",
+                  "description": "One or more ContactType elements belonging to a shipment. Mandatory in some cases. Please refer to the available [Contact types](#tag/Reference-codes/Contact-types) for the possible values.",
+                  "items": {
+                    "required": [
+                      "ContactType"
+                    ],
+                    "type": "object",
+                    "properties": {
+                      "ContactType": {
+                        "pattern": "^\\d{2}$",
+                        "type": "string",
+                        "description": "Type of the contact. This is a code. Please refer to the available [Contact types](#tag/Reference-codes/Contact-types) for the possible values.",
+                        "example": "01"
+                      },
+                      "Email": {
+                        "minLength": 0,
+                        "maxLength": 50,
+                        "type": "string",
+                        "description": "Email address of the contact. Mandatory in some cases. Please see [Guidelines](https://developer.postnl.nl/browse-apis/send-and-track/labelling-webservice/).",
+                        "example": "receiver@email.com"
+                      },
+                      "SMSNr": {
+                        "minLength": 10,
+                        "maxLength": 17,
+                        "type": "string",
+                        "description": "Mobile phone number of the contact. Mandatory in some cases. Please see [Guidelines](https://developer.postnl.nl/browse-apis/send-and-track/labelling-webservice/).",
+                        "example": "+31612345678"
+                      },
+                      "TelNr": {
+                        "minLength": 10,
+                        "maxLength": 17,
+                        "type": "string",
+                        "description": "Phone number of the contact",
+                        "example": "+31301234567"
+                      }
+                    }
+                  }
+                },
+                "Content": {
+                  "minLength": 0,
+                  "maxLength": 35,
+                  "type": "string",
+                  "description": "Content of the shipment. Mandatory for Extra@Home shipments",
+                  "example": "Media player"
+                },
+                "CostCenter": {
+                  "minLength": 0,
+                  "maxLength": 35,
+                  "type": "string",
+                  "description": "Cost center of the shipment. This value will appear on your invoice",
+                  "example": "SX-GT-66"
+                },
+                "CustomerOrderNumber": {
+                  "minLength": 0,
+                  "maxLength": 35,
+                  "type": "string",
+                  "description": "Order number of the customer",
+                  "example": "8689242390"
+                },
+                "Customs": {
+                  "type": "object",
+                  "description": "The Customs type is mandatory for non-EU shipments and not allowed for any other shipment types.",
+                  "required": [
+                    "Content",
+                    "Currency",
+                    "ShipmentType"
+                  ],
+                  "properties": {
+                    "Certificate": {
+                      "type": "boolean",
+                      "description": "Fill in if applicable, for specific items a export certificate is obliged, as proof that the item complies to the sanity regulations, [more information](https://ondernemersplein.kvk.nl/fytosanitair-of-veterinair-exportcertificaat-aanvragen/). Mandatory for Parcel shipments in the category type Commercial Goods, Commercial Sample and Returned Goods (Certificate, Invoice or License; at least 1 out of 3 must be selected)",
+                      "example": true
+                    },
+                    "CertificateNr": {
+                      "minLength": 0,
+                      "maxLength": 35,
+                      "type": "string",
+                      "description": "Mandatory when Certificate is true. ",
+                      "example": "CERT-1235986739"
+                    },
+                    "License": {
+                      "type": "boolean",
+                      "description": "Fill in if applicable. Mandatory for Parcel shipments in the category type Commercial Goods, Commercial Sample and Returned Goods (Certificate, Invoice or License; at least 1 out of 3 must be selected).",
+                      "example": true
+                    },
+                    "LicenseNr": {
+                      "type": "string",
+                      "description": "Mandatory when License is true.",
+                      "example": "LIC-9847397"
+                    },
+                    "Invoice": {
+                      "type": "boolean",
+                      "description": "Fill in the invoice number of the shipment. For a faster customs clearing process apply the invoice on the outside of the shipment. Mandatory for Parcel shipments in the category type Commercial Goods, Commercial Sample and Returned Goods (Certificate, Invoice or License; at least 1 out of 3 must be selected).",
+                      "example": true
+                    },
+                    "InvoiceNr": {
+                      "type": "string",
+                      "description": "Mandatory when Invoice is true",
+                      "example": "INV_0120330"
+                    },
+                    "HandleAsNonDeliverable": {
+                      "type": "boolean",
+                      "description": "Determines what to do when the shipment cannot be delivered the first time (if this is set to true,the shipment will be returned after the first failed attempt)",
+                      "example": false
+                    },
+                    "Currency": {
+                      "type": "string",
+                      "description": "Currency code,only EUR and USS are allowed",
+                      "example": "EUR",
+                      "enum": [
+                        "EUR",
+                        "USS"
+                      ]
+                    },
+                    "ShipmentType": {
+                      "type": "string",
+                      "description": "Type of shipment,possible values: Gift,Documents,Commercial Goods,Commercial Sample,Returned Goods",
+                      "example": "Commercial Goods",
+                      "enum": [
+                        "Gift",
+                        "Documents",
+                        "Commercial Goods",
+                        "Commercial Sample",
+                        "Returned Goods"
+                      ]
+                    },
+                    "TrustedShipperID": {
+                      "minLength": 0,
+                      "maxLength": 50,
+                      "type": "string",
+                      "description": "'Use only when available. Depending on the destination with this ID the customs process can be faster. Only fill in this customs reference number if the sender is registrated as Trusted Shipper in the country of destination'",
+                      "example": "NL862386524"
+                    },
+                    "ImporterReferenceCode": {
+                      "minLength": 0,
+                      "maxLength": 50,
+                      "type": "string",
+                      "description": "Importer reference code. Fill in a Tax Code or VAT number or Importer code. Depending on the destination with this reference the customs process can be faster.",
+                      "example": "GB339713089011"
+                    },
+                    "TransactionCode": {
+                      "minLength": 0,
+                      "maxLength": 50,
+                      "type": "string",
+                      "description": "Code and accompanying description according to UPU Codelist 136. Codes to be used are shown below for your reference. Or see the [Reference data](#tag/Reference-codes/Transaction-codes).",
+                      "example": "11"
+                    },
+                    "TransactionDescription": {
+                      "minLength": 0,
+                      "maxLength": 50,
+                      "type": "string",
+                      "description": "Transaction description; see [here](#tag/Reference-codes/Transaction-codes) for common examples.",
+                      "example": "Sale of goods"
+                    },
+                    "Content": {
+                      "type": "array",
+                      "description": "The contents of the shipment. This section is mandatory (minimum once, maximum 5).",
+                      "items": {
+                        "required": [
+                          "Description",
+                          "Quantity",
+                          "Value",
+                          "Weight"
+                        ],
+                        "type": "object",
+                        "properties": {
+                          "Description": {
+                            "minLength": 1,
+                            "maxLength": 35,
+                            "type": "string",
+                            "description": "Description of goods",
+                            "example": "Powdered milk"
+                          },
+                          "Quantity": {
+                            "minimum": 1,
+                            "pattern": "^\\d+$",
+                            "type": "integer",
+                            "description": "Fill in the total of the item(s)",
+                            "example": 2
+                          },
+                          "Weight": {
+                            "pattern": "^\\d+$",
+                            "type": "integer",
+                            "description": "Net weight of goods in gram(gr)",
+                            "example": 2600
+                          },
+                          "Value": {
+                            "pattern": "^\\d+\\.\\d{2}$",
+                            "type": "number",
+                            "format": "double",
+                            "description": "Commercial (customs) value of goods. Fill in the value of the item(s). ",
+                            "example": 119.99
+                          },
+                          "HSTariffNr": {
+                            "minLength": 6,
+                            "maxLength": 6,
+                            "type": "string",
+                            "description": "Specify every item with the standard HS commodity code (HS-code), [more information](https://tarief.douane.nl/arctictariff-public-web/#!/home)",
+                            "example": "100878"
+                          },
+                          "CountryOfOrigin": {
+                            "pattern": "^[A-Z]{2}$",
+                            "type": "string",
+                            "description": "Fill in the code of the country where the item was produced (ISO-code), [more information](https://www.iso.org/home.html)",
+                            "example": "NL"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "DeliveryAddress": {
+                  "pattern": "^\\d{2}$",
+                  "type": "string",
+                  "description": "Delivery address specification. This field is mandatory when AddressType on the Address is 09.",
+                  "example": "01"
+                },
+                "DeliveryDate": {
+                  "pattern": "^[0-3]\\d-[01]\\d-[12]\\d{3}\\s[0-2]\\d:[0-5]\\d:[0-5]\\d$",
+                  "type": "string",
+                  "description": "Mandatory when using Mailbox Parcels (for generation of the coding rule) and delivery options like Evening/Morning/Sameday delivery etc.",
+                  "example": "30-06-2016 12:00:00"
+                },
+                "Dimension": {
+                  "required": [
+                    "Weight"
+                  ],
+                  "type": "object",
+                  "description": "Note: Length, Width, Height values are about the order of the size and need to be filled in from the longest to the shortest value. For example: shipment’s official height is 700mm, width 500mm, length 300mm. The longest side (highest value) of 700mm needs to be entered at Length. Width value becomes 500mm, Height value: 300mm (the lowest). Entering the dimensions in the wrong order may result in incorrect shipping labels and longer delivery times. The maximum dimensions can be found in your PostNL contract.",
+                  "properties": {
+                    "Height": {
+                      "minimum": 1,
+                      "type": "integer",
+                      "description": "The shortest side of the shipment in millimeters (mm).",
+                      "example": 300
+                    },
+                    "Length": {
+                      "minimum": 1,
+                      "type": "integer",
+                      "description": "The longest side of the shipment in millimeters (mm).",
+                      "example": 700
+                    },
+                    "Volume": {
+                      "minimum": 1,
+                      "type": "integer",
+                      "description": "Volume of the shipment in centimeters (cm3). Mandatory for E@H-products.",
+                      "example": 30000
+                    },
+                    "Weight": {
+                      "minimum": 1,
+                      "type": "integer",
+                      "description": "Weight of the shipment in grams. Approximate weight suffices",
+                      "example": 4300
+                    },
+                    "Width": {
+                      "minimum": 1,
+                      "type": "integer",
+                      "description": "The second longest side of the shipment in millimeters (mm).",
+                      "example": 500
+                    }
+                  }
+                },
+                "DownPartnerBarcode": {
+                  "minLength": 0,
+                  "maxLength": 35,
+                  "type": "string",
+                  "description": "Barcode of the downstream network partner of PostNL Parcels. Madatory for requesting Parcels Non-EU combilabel product codes.",
+                  "example": "CD123456785NL"
+                },
+                "DownPartnerID": {
+                  "minLength": 0,
+                  "maxLength": 50,
+                  "type": "string",
+                  "description": "Identification of the downstream network partner of PostNL Pakketten."
+                },
+                "DownPartnerLocation": {
+                  "minLength": 0,
+                  "maxLength": 10,
+                  "type": "string",
+                  "description": "Identification of the location of the downstream network partner of PostNL Pakketten.",
+                  "example": "PNPNL-01"
+                },
+                "Groups": {
+                  "type": "array",
+                  "description": "List of 0 or more Group types with data, grouping multiple shipments together. Mandatory for multicollo shipments. Please see [Guidelines](https://developer.postnl.nl/browse-apis/send-and-track/labelling-webservice/) (Multiple shipments) for more information.",
+                  "items": {
+                    "required": [
+                      "GroupType",
+                      "MainBarcode"
+                    ],
+                    "type": "object",
+                    "properties": {
+                      "GroupType": {
+                        "pattern": "^\\d{2}$",
+                        "type": "string",
+                        "description": "Group sort that determines the type of group that is indicated. This is a code. For possible values, please see [here](#tag/Reference-codes/Group-types)",
+                        "example": "03"
+                      },
+                      "GroupSequence": {
+                        "type": "integer",
+                        "description": "Sequence number of the collo within the complete shipment (e.g. collo 2 of 4) Mandatory for multicollo shipments",
+                        "example": 1
+                      },
+                      "GroupCount": {
+                        "type": "integer",
+                        "description": "Total number of colli in the shipment (in case of multicolli shipments) Mandatory for multicollo shipments",
+                        "example": 2
+                      },
+                      "MainBarcode": {
+                        "minLength": 11,
+                        "maxLength": 15,
+                        "type": "string",
+                        "description": "Main barcode for the shipment (in case of multicolli shipments) Mandatory for multicollo shipments",
+                        "example": "3SDEVC7239264"
+                      }
+                    }
+                  }
+                },
+                "HazardousMaterial": {
+                  "type": "array",
+                  "description": "Array of hazardous materials contained in the shipment",
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "ToxicSubstanceCode"
+                    ],
+                    "properties": {
+                      "ToxicSubstanceCode": {
+                        "type": "string",
+                        "description": "Toxic substance code as stated in the ADR agreement",
+                        "example": "8"
+                      },
+                      "AdditionalToxicSubstanceCode": {
+                        "type": "array",
+                        "description": "Array of additional toxic substance codes as stated in the ADR agreement",
+                        "items": {
+                          "type": "string"
+                        },
+                        "example": [
+                          "1-11",
+                          "28-4"
+                        ]
+                      },
+                      "ADRPoints": {
+                        "type": "string",
+                        "description": "The amount of ADR points",
+                        "example": "30"
+                      },
+                      "TunnelCode": {
+                        "type": "string",
+                        "description": "The code indicating for which category of tunnels passage is prohibited with these goods.",
+                        "example": "(E)"
+                      },
+                      "PackagingGroupCode": {
+                        "type": "string",
+                        "description": "Code identifying the category of the packaging material.",
+                        "example": "III"
+                      },
+                      "PackagingGroupDescription": {
+                        "type": "string",
+                        "description": "Description of the packaging material",
+                        "example": "Jerrycan plastic"
+                      },
+                      "GrossWeight": {
+                        "type": "string",
+                        "description": "Gross weight of the goods in grams.",
+                        "example": "30000"
+                      },
+                      "UNDGNumber": {
+                        "type": "string",
+                        "description": "The UNDG number",
+                        "example": "UN 1760"
+                      },
+                      "TransportCategoryCode": {
+                        "type": "string",
+                        "description": "The transport category code",
+                        "example": "3"
+                      },
+                      "ChemicalTechnicalDescription": {
+                        "type": "string",
+                        "description": "The chemical technical description of the goods.",
+                        "example": "FOSFORZUUR"
+                      }
+                    }
+                  }
+                },
+                "ProductCodeCollect": {
+                  "type": "string",
+                  "description": "Deprecated. Collection product code of a shipment.",
+                  "example": "3153"
+                },
+                "ProductCodeDelivery": {
+                  "pattern": "^\\d{4,5}$",
+                  "type": "string",
+                  "description": "Product code of the shipment. See the [Products page](#tag/Product-codes) for possible products.",
+                  "default": "3085"
+                },
+                "ProductOptions": {
+                  "type": "array",
+                  "description": "Product options for the shipment, mandatory for certain products, see the [Products page](#tag/Product-codes).",
+                  "items": {
+                    "required": [
+                      "Characteristic",
+                      "Option"
+                    ],
+                    "type": "object",
+                    "properties": {
+                      "Characteristic": {
+                        "pattern": "^\\d{3}$",
+                        "type": "string",
+                        "description": "The characteristic of the ProductOption. Mandatory for some products, please see the [Products page](#tag/Product-codes)",
+                        "default": "118"
+                      },
+                      "Option": {
+                        "pattern": "^\\d{3}$",
+                        "type": "string",
+                        "description": "The product option code for this ProductOption. Mandatory for some products, please see the [Products page](#tag/Product-codes)",
+                        "default": "006"
+                      }
+                    }
+                  }
+                },
+                "ReceiverDateOfBirth": {
+                  "pattern": "^([0-3]\\d-[01]\\d-[12]\\d{3})$",
+                  "type": "string",
+                  "description": "Date of birth. Mandatory for Age check products",
+                  "example": "10-12-1980"
+                },
+                "Reference": {
+                  "type": "string",
+                  "description": "Your own reference of the shipment. Mandatory for Extra@Home shipments; for E@H this is used to create your order number, so this should be unique for each request.",
+                  "example": "REF-2016014567"
+                },
+                "ReferenceCollect": {
+                  "type": "string",
+                  "description": "Additional reference of the collect order of the shipment",
+                  "example": "REF-6659150"
+                },
+                "Remark": {
+                  "type": "string",
+                  "description": "Remark of the shipment.",
+                  "example": "Fragile"
+                },
+                "ReturnBarcode": {
+                  "type": "string",
+                  "description": "Return barcode of the shipment. PostNL will provide you with a separate customer code specifically for generating the returnBarcode. Mandatory for Label in the Box (return label) shipments.",
+                  "example": "3SDEVR7762162"
+                },
+                "ReturnReference": {
+                  "type": "string",
+                  "description": "Return reference of the shipment",
+                  "example": "REF-639265677788"
+                },
+                "TimeslotID": {
+                  "type": "string",
+                  "description": "Deprecated. ID of the chosen timeslot as returned by the timeslot webservice",
+                  "example": null
+                },
+                "ExtraFields": {
+                  "type": "array",
+                  "description": "Possibility to provide extra key-value pairs to the webservice. Not used at the moment.",
+                  "example": null,
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "Key": {
+                        "type": "string"
+                      },
+                      "Value": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "labellingResponse": {
+        "type": "object",
+        "properties": {
+          "MergedLabels": {
+            "type": "array",
+            "description": "The merged label output; only returned if the printer type selected in your request merges the pdf labels into a single file (e.g. using GraphicFile|Merge).",
+            "items": {
+              "type": "object",
+              "properties": {
+                "Barcodes": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "description": "Array of barcodes used in the shipment",
+                    "example": [
+                      "3SDEVC281677095",
+                      "3SDEVC991553677"
+                    ]
+                  }
+                },
+                "Labels": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "Content": {
+                        "type": "string",
+                        "description": "Base64 encoded label content",
+                        "example": "JVBERi0xLjMKJeLjz9MKNSAwIG9iago8PAovQ29udGVudHMg[TRUNCATED]"
+                      },
+                      "Labeltype": {
+                        "type": "string",
+                        "example": "Label",
+                        "description": "Type of the label. See possible [Label types](#tag/Reference-codes/Label-types)"
+                      },
+                      "OutputType": {
+                        "type": "string",
+                        "description": "Content type of the label, e.g. zebra of pdf.",
+                        "example": "PDF"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "ResponseShipments": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "ProductCodeDelivery": {
+                  "type": "string",
+                  "description": "The product code of the shipment",
+                  "example": "3085"
+                },
+                "Labels": {
+                  "type": "array",
+                  "description": "All labels belonging to the selected product",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "Content": {
+                        "type": "string",
+                        "description": "Base64 encoded label content",
+                        "example": "JVBERi0xLjMKJeLjz9MKNSAwIG9iago8PAovQ29udGVudHMg[TRUNCATED]"
+                      },
+                      "Labeltype": {
+                        "type": "string",
+                        "example": "Label",
+                        "description": "Type of the label. See Guidelines"
+                      },
+                      "OutputType": {
+                        "type": "string",
+                        "description": "Content type of the label, e.g. zebra of pdf. Note: It is not recommended to send .PDF files/labels directly to a Zebra printer. See Guidelines.",
+                        "example": "PDF"
+                      }
+                    }
+                  }
+                },
+                "Barcode": {
+                  "type": "string",
+                  "description": "The barcode used on the label",
+                  "example": "3SDEVC281677095"
+                },
+                "Warnings": {
+                  "type": "array",
+                  "description": "Possible warnings. See the [Error Codes](#tag/Error-codes) for possible values",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "Code": {
+                        "type": "string",
+                        "description": "The Warning code",
+                        "example": "1280203"
+                      },
+                      "Description": {
+                        "type": "string",
+                        "description": "The warning description",
+                        "example": "Address is unknown"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "labellingResponseInvalid": {
+        "type": "object",
+        "properties": {
+          "Errors": {
+            "type": "array",
+            "description": "A list of errors returned from the webservice. See the [Error codes](#tag/Error-codes) for possible values.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "Error": {
+                  "type": "string",
+                  "description": "The error reason",
+                  "example": "Validation failed for shipment: 3SDEVC949511897"
+                },
+                "Code": {
+                  "type": "string",
+                  "description": "The error code",
+                  "example": "1280202"
+                },
+                "Description": {
+                  "type": "string",
+                  "description": "The description of the error",
+                  "example": "Incorrect address specified in address type Sender"
+                }
+              }
+            }
+          }
+        }
+      },
+      "labellingResponseError": {
+        "type": "object",
+        "properties": {
+          "fault": {
+            "type": "object",
+            "properties": {
+              "faultstring": {
+                "type": "string",
+                "example": "Unexpected token in object literal"
+              },
+              "detail": {
+                "type": "object",
+                "properties": {
+                  "errorcode": {
+                    "type": "string",
+                    "example": "Validation Fault"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "labellingUnauthorized": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "example": "Failed to resolve API Key variable 'request.header.apikey'"
+          },
+          "http_status_code": {
+            "type": "number",
+            "example": 401
+          }
+        }
+      },
+      "labellingMethodNotAllowed": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "example": "Only POST requests allowed"
+          },
+          "http_status_code": {
+            "type": "number",
+            "example": 405
+          }
+        }
+      },
+      "labellingTooManyRequest": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "example": "Too many requests. Rate limit exceeded!"
+          },
+          "http_status_code": {
+            "type": "number",
+            "example": 429
+          }
+        }
+      }
+    },
+    "examples": {
+      "labellingExampleRequestDefault": {
+        "value": {
+          "Customer": {
+            "Address": {
+              "AddressType": "02",
+              "City": "Den Haag",
+              "CompanyName": "PostNL",
+              "Countrycode": "NL",
+              "HouseNr": "3",
+              "Street": "Waldorpstraat",
+              "Zipcode": "2521CA"
+            },
+            "CollectionLocation": "123456",
+            "ContactPerson": "Janssen",
+            "CustomerCode": "DEVC",
+            "CustomerNumber": "11223344",
+            "Email": "email@company.com",
+            "Name": "Janssen"
+          },
+          "Message": {
+            "MessageID": "1",
+            "MessageTimeStamp": "08-09-2022 12:00:00",
+            "Printertype": "GraphicFile|PDF"
+          },
+          "Shipments": [
+            {
+              "Addresses": [
+                {
+                  "AddressType": "01",
+                  "City": "Utrecht",
+                  "Countrycode": "NL",
+                  "FirstName": "Peter",
+                  "HouseNr": "9",
+                  "HouseNrExt": "a bis",
+                  "Name": "de Ruiter",
+                  "Street": "Bilderdijkstraat",
+                  "Zipcode": "3532VA"
+                }
+              ],
+              "Barcode": "3SDEVC748859096",
+              "Contacts": [
+                {
+                  "ContactType": "01",
+                  "Email": "receiver@email.com",
+                  "SMSNr": "+31612345678",
+                  "TelNr": "+31301234567"
+                }
+              ],
+              "Dimension": {
+                "Weight": "2000"
+              },
+              "ProductCodeDelivery": "3085"
+            }
+          ]
+        }
+      },
+      "labellingExampleRequestEvening": {
+        "value": {
+          "Customer": {
+            "Address": {
+              "AddressType": "02",
+              "City": "Den Haag",
+              "CompanyName": "PostNL",
+              "Countrycode": "NL",
+              "HouseNr": "3",
+              "Street": "Waldorpstraat",
+              "Zipcode": "2521CA"
+            },
+            "CollectionLocation": "123456",
+            "ContactPerson": "Janssen",
+            "CustomerCode": "DEVC",
+            "CustomerNumber": "11223344",
+            "Email": "email@company.com",
+            "Name": "Janssen"
+          },
+          "Message": {
+            "MessageID": "1",
+            "MessageTimeStamp": "08-09-2022 12:00:00",
+            "Printertype": "GraphicFile|PDF"
+          },
+          "Shipments": [
+            {
+              "Addresses": [
+                {
+                  "AddressType": "01",
+                  "City": "Utrecht",
+                  "Countrycode": "NL",
+                  "FirstName": "Peter",
+                  "HouseNr": "9",
+                  "HouseNrExt": "a bis",
+                  "Name": "de Ruiter",
+                  "Street": "Bilderdijkstraat",
+                  "Zipcode": "3532VA"
+                }
+              ],
+              "Barcode": "3SDEVC748859096",
+              "Contacts": [
+                {
+                  "ContactType": "01",
+                  "Email": "receiver@email.com",
+                  "SMSNr": "+31612345678",
+                  "TelNr": "+31301234567"
+                }
+              ],
+              "DeliveryDate": "07-09-2022 18:00:00",
+              "Dimension": {
+                "Weight": "2000"
+              },
+              "ProductCodeDelivery": "3085",
+              "ProductOptions": [
+                {
+                  "Characteristic": "118",
+                  "Option": "006"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "labellingExampleRequestCustoms": {
+        "value": {
+          "Customer": {
+            "Address": {
+              "AddressType": "02",
+              "City": "Hoofddorp",
+              "CompanyName": "PostNL",
+              "Countrycode": "NL",
+              "HouseNr": "42",
+              "Street": "Siriusdreef",
+              "Zipcode": "2132WT"
+            },
+            "CollectionLocation": "1234506",
+            "ContactPerson": "Janssen",
+            "CustomerCode": "DEVC",
+            "CustomerNumber": "11223344",
+            "Email": "email@company.com",
+            "Name": "Janssen"
+          },
+          "Message": {
+            "MessageID": "e78ef73c-8369-4a91-a13f-a3d61987912f",
+            "MessageTimeStamp": "23-03-2022 14:31:21",
+            "Printertype": "GraphicFile|PDF"
+          },
+          "Shipments": [
+            {
+              "Addresses": [
+                {
+                  "AddressType": "01",
+                  "City": "Shanghai",
+                  "CompanyName": "PostNL",
+                  "Countrycode": "CN",
+                  "FirstName": "Peter",
+                  "HouseNr": "137",
+                  "Name": "de Ruiter",
+                  "Street": "Nanjinglu",
+                  "Zipcode": "310000"
+                }
+              ],
+              "Barcode": "CA12346536XNL",
+              "Contacts": [
+                {
+                  "ContactType": "01",
+                  "Email": "receiver@email.com",
+                  "SMSNr": "+31612345678"
+                }
+              ],
+              "Customs": {
+                "Content": [
+                  {
+                    "CountryOfOrigin": "NL",
+                    "Description": "Powdered milk",
+                    "HSTariffNr": "19019091",
+                    "Quantity": 2,
+                    "Value": 20,
+                    "Weight": 4300
+                  }
+                ],
+                "Currency": "EUR",
+                "HandleAsNonDeliverable": false,
+                "Invoice": true,
+                "InvoiceNr": "22334455",
+                "ShipmentType": "Commercial Goods"
+              },
+              "Dimension": {
+                "Weight": "4300"
+              },
+              "ProductCodeDelivery": "4945"
+            }
+          ]
+        }
+      },
+      "labellingExampleResponseStandard": {
+        "value": {
+          "MergedLabels": [],
+          "ResponseShipments": [
+            {
+              "Barcode": "3SDEVC272730803",
+              "Errors": [],
+              "Warnings": [],
+              "Labels": [
+                {
+                  "Content": "JVBERi0xLjMKJeLjz9MKNSAwIG9iago8PAovQ29udGVudHMg[TRUNCATED]",
+                  "Labeltype": "Label",
+                  "OutputType": "PDF"
+                }
+              ],
+              "ProductCodeDelivery": "3085"
+            }
+          ]
+        }
+      },
+      "labellingExampleResponseMultilabel": {
+        "value": {
+          "MergedLabels": [],
+          "ResponseShipments": [
+            {
+              "Barcode": "CA12346536XNL",
+              "Errors": [],
+              "Warnings": [],
+              "Labels": [
+                {
+                  "Content": "JVBERi0xLjMKJeLjz9MKNSAwIG9iago8PAovQ29udGVudHMg[TRUNCATED]",
+                  "Labeltype": "CN23",
+                  "OutputType": "PDF"
+                },
+                {
+                  "Content": "JVBERi0xLjMKJeLjz9MKNSAwIG9iago8PAovQ29udGVudHMg[TRUNCATED]",
+                  "Labeltype": "CP71",
+                  "OutputType": "PDF"
+                },
+                {
+                  "Content": "JVBERi0xLjMKJeLjz9MKNSAwIG9iago8PAovQ29udGVudHMg[TRUNCATED]",
+                  "Labeltype": "CommercialInvoice",
+                  "OutputType": "PDF"
+                }
+              ],
+              "ProductCodeDelivery": "4945"
+            }
+          ]
+        }
+      },
+      "labellingExampleResponseMerged": {
+        "value": {
+          "MergedLabels": [
+            {
+              "Barcodes": [
+                "3SDEVC820454271",
+                "3SDEVC299657254"
+              ],
+              "Labels": [
+                {
+                  "Content": "JVBERi0xLjMKJeLjz9MKNSAwIG9iago8PAovQ29udGVudHMg[TRUNCATED]",
+                  "Labeltype": "Label",
+                  "OutputType": "PDF"
+                }
+              ]
+            }
+          ],
+          "ResponseShipments": [
+            {
+              "Barcode": "3SDEVC820454271",
+              "Errors": [],
+              "Warnings": [],
+              "Labels": [],
+              "ProductCodeDelivery": "3085"
+            },
+            {
+              "Barcode": "3SDEVC299657254",
+              "Errors": [],
+              "Warnings": [],
+              "Labels": [],
+              "ProductCodeDelivery": "3085"
+            }
+          ]
+        }
+      }
+    }
+  }
+}
