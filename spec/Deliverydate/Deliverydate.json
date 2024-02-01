@@ -1,0 +1,672 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "Deliverydate API",
+    "description": "Calculate expected delivery date based on shipping date or required shipping date based on requested delivery date",
+    "version": "v2_2"
+  },
+  "servers": [
+    {
+      "url": "https://api-sandbox.postnl.nl",
+      "description": "Non-Production server"
+    },
+    {
+      "url": "https://api.postnl.nl",
+      "description": "Production server"
+    }
+  ],
+  "security": [
+    {
+      "APIKeyHeader": []
+    }
+  ],
+  "paths": {
+    "/shipment/v2_2/calculate/date/delivery": {
+      "get": {
+        "tags": [
+          "Deliverydate"
+        ],
+        "summary": "Calculate expected delivery date",
+        "description": "Request example:\n```\ncurl -X GET \"https://api-sandbox.postnl.nl/shipment/v2_2/calculate/date/delivery?ShippingDate=29-05-2022+14%3A00%3A00&amp;ShippingDuration=1&amp;CutOffTime=17%3A00%3A00&amp;PostalCode=2132WT&amp;CountryCode=NL&amp;City=Hoofddorp&amp;Street=Siriusdreef&amp;HouseNumber=42&amp;HouseNrExt=A\" \\\n -H \"Accept: application/json\" \\\n -H \"apikey: APIKEY-HERE\" \n```\n",
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "ShippingDate",
+            "in": "query",
+            "description": "Date/time of preparing the shipment for sending. Format: dd-MM-yyyy hh:mm:ss ",
+            "required": true,
+            "schema": {
+              "pattern": "^[0-3]\\d-[0-1]\\d-[1-2]\\d{3}\\s[0-2]\\d:[0-5]\\d:[0-5]\\d$",
+              "type": "string",
+              "example": "29-05-2022 14:00:00"
+            }
+          },
+          {
+            "name": "ShippingDuration",
+            "in": "query",
+            "description": "The duration it takes for the shipment to be delivered to PostNL in days. A value of 1 means that the parcel will be delivered to PostNL on the same day as the date specified in ShippingDate. A value of 2 means the parcel will arrive at PostNL a day later etc.",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "example": 1
+            }
+          },
+          {
+            "name": "CutOffTime",
+            "in": "query",
+            "description": "Default cutoff time",
+            "required": true,
+            "schema": {
+              "pattern": "^[0-2]\\d:[0-5]\\d:[0-5]\\d$",
+              "type": "string",
+              "example": "17:00:00"
+            }
+          },
+          {
+            "name": "PostalCode",
+            "in": "query",
+            "description": "Zipcode of the destination address",
+            "required": true,
+            "schema": {
+              "pattern": "^[0-9]{4}([A-Z]{2})?$",
+              "type": "string",
+              "example": "2132WT"
+            }
+          },
+          {
+            "name": "CountryCode",
+            "in": "query",
+            "required": true,
+            "description": "The ISO2 destination country code",
+            "schema": {
+              "type": "string",
+              "example": "NL",
+              "enum": [
+                "NL",
+                "BE"
+              ]
+            }
+          },
+          {
+            "name": "OriginCountryCode",
+            "in": "query",
+            "description": "The ISO2 origin country code",
+            "schema": {
+              "type": "string",
+              "default": "NL",
+              "enum": [
+                "NL",
+                "BE"
+              ]
+            }
+          },
+          {
+            "name": "City",
+            "in": "query",
+            "description": "City of the destination address",
+            "schema": {
+              "type": "string",
+              "example": "Hoofddorp"
+            }
+          },
+          {
+            "name": "Street",
+            "in": "query",
+            "description": "The street name of the destination address.",
+            "schema": {
+              "type": "string",
+              "example": "Siriusdreef"
+            }
+          },
+          {
+            "name": "HouseNumber",
+            "in": "query",
+            "description": "The house number of the destination address",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "example": 42
+            }
+          },
+          {
+            "name": "HouseNrExt",
+            "in": "query",
+            "description": "House number extension of the delivery address",
+            "schema": {
+              "type": "string",
+              "example": "A"
+            }
+          },
+          {
+            "name": "Options",
+            "in": "query",
+            "required": true,
+            "description": "The delivery options that you want to take into account when calculating the expected delivery date",
+            "style": "form",
+            "explode": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "Daytime",
+                  "Evening",
+                  "Morning",
+                  "Noon",
+                  "Sunday",
+                  "Today",
+                  "Afternoon"
+                ]
+              }
+            }
+          },
+          {
+            "name": "CutOffTimeMonday",
+            "in": "query",
+            "description": "Overrides default cutoff time specified in the CutOffTime parameter for mondays specifically",
+            "schema": {
+              "pattern": "^[0-2]\\d:[0-5]\\d:[0-5]\\d$",
+              "type": "string"
+            }
+          },
+          {
+            "name": "AvailableMonday",
+            "in": "query",
+            "description": "Specifies if you are available to ship to PostNL on mondays",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "CutOffTimeTuesday",
+            "in": "query",
+            "description": "Overrides default cutoff time specified in the CutOffTime parameter for tuesdays specifically",
+            "schema": {
+              "pattern": "^[0-2]\\d:[0-5]\\d:[0-5]\\d$",
+              "type": "string"
+            }
+          },
+          {
+            "name": "AvailableTuesday",
+            "in": "query",
+            "description": "Specifies if you are available to ship to PostNL on tuesdays",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "CutOffTimeWednesday",
+            "in": "query",
+            "description": "Overrides default cutoff time specified in the CutOffTime parameter for wednesdays specifically",
+            "schema": {
+              "pattern": "^[0-2]\\d:[0-5]\\d:[0-5]\\d$",
+              "type": "string"
+            }
+          },
+          {
+            "name": "AvailableWednesday",
+            "in": "query",
+            "description": "Specifies if you are available to ship to PostNL on wednesdays",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "CutOffTimeThursday",
+            "in": "query",
+            "description": "Overrides default cutoff time specified in the CutOffTime parameter for thursdays specifically",
+            "schema": {
+              "pattern": "^[0-2]\\d:[0-5]\\d:[0-5]\\d$",
+              "type": "string"
+            }
+          },
+          {
+            "name": "AvailableThursday",
+            "in": "query",
+            "description": "Specifies if you are available to ship to PostNL on thursdays",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "CutOffTimeFriday",
+            "in": "query",
+            "description": "Overrides default cutoff time specified in the CutOffTime parameter for fridays specifically",
+            "schema": {
+              "pattern": "^[0-2]\\d:[0-5]\\d:[0-5]\\d$",
+              "type": "string"
+            }
+          },
+          {
+            "name": "AvailableFriday",
+            "in": "query",
+            "description": "Specifies if you are available to ship to PostNL on fridays",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "CutOffTimeSaturday",
+            "in": "query",
+            "description": "Overrides default cutoff time specified in the CutOffTime parameter for saturdays specifically",
+            "schema": {
+              "pattern": "^[0-2]\\d:[0-5]\\d:[0-5]\\d$",
+              "type": "string"
+            }
+          },
+          {
+            "name": "AvailableSaturday",
+            "in": "query",
+            "description": "Specifies if you are available to ship to PostNL on saturdays",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "CutOffTimeSunday",
+            "in": "query",
+            "description": "Overrides default cutoff time specified in the CutOffTime parameter for sundays specifically",
+            "schema": {
+              "pattern": "^[0-2]\\d:[0-5]\\d:[0-5]\\d$",
+              "type": "string"
+            }
+          },
+          {
+            "name": "AvailableSunday",
+            "in": "query",
+            "description": "Specifies if you are available to ship to PostNL on sundays",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Expected earliest delivery date",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "DeliveryDate": {
+                      "type": "string",
+                      "example": "30-05-2022"
+                    },
+                    "Options": {
+                      "type": "object",
+                      "description": "The delivery options for which a delivery date is returned. Only one delivery option is specified. See [Delivery Options](#tag/Reference-codes/Delivery-options) for possible values.",
+                      "properties": {
+                        "string": {
+                          "type": "string",
+                          "enum": [
+                            "Daytime",
+                            "Evening",
+                            "Morning",
+                            "Noon",
+                            "Sunday",
+                            "Today",
+                            "Afternoon"
+                          ]
+                        }
+                      }
+                    },
+                    "Sustainability": {
+                      "type": "object",
+                      "description": "Sustainability score; see [Sustainability codes](#tag/Reference-codes/Sustainability-codes) for possible values.",
+                      "properties": {
+                        "Code": {
+                          "type": "string",
+                          "description": "Sustainability score code",
+                          "example": "02"
+                        },
+                        "Description": {
+                          "type": "string",
+                          "description": "Sustainability score code description",
+                          "example": "Sustainable option"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/deliverydateResponseInvalid"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid apikey",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PostCIF-DeliveryDateUnauthorized"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Method not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PostCIF-DeliveryDateMethodNotAllowed"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PostCIF-DeliveryDateTooManyRequest"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/deliverydateResponseError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/shipment/v2_2/calculate/date/shipping": {
+      "get": {
+        "tags": [
+          "Deliverydate"
+        ],
+        "summary": "Calculate required shipping date",
+        "description": "Request example:\n```\ncurl -X GET \"https://api-sandbox.postnl.nl/shipment/v2_2/calculate/date/shipping?DeliveryDate=30-05-2022&amp;ShippingDuration=1&amp;PostalCode=2132WT&amp;CountryCode=NL&amp;City=Hoofddorp&amp;Street=Siriusdreef&amp;HouseNumber=42&amp;HouseNrExt=A\" \\\n -H \"Accept: application/json\" \\\n -H \"apikey: APIKEY-HERE\" \\\n\n```\n",
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "DeliveryDate",
+            "in": "query",
+            "description": "Date of the expected delivery (to the final destination) of the shipment.",
+            "required": true,
+            "schema": {
+              "pattern": "^[0-3]\\d-[0-1]\\d-[1-2]\\d{3}$",
+              "type": "string",
+              "example": "30-05-2022"
+            }
+          },
+          {
+            "name": "ShippingDuration",
+            "in": "query",
+            "description": "The duration it takes for the shipment to be delivered to PostNL in days. A value of 1 means that the parcel will be delivered to PostNL on the same day as the date specified in ShippingDate. A value of 2 means the parcel will arrive at PostNL a day later etc.",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "example": 1
+            }
+          },
+          {
+            "name": "PostalCode",
+            "in": "query",
+            "description": "Zipcode of the address",
+            "required": true,
+            "schema": {
+              "pattern": "^[0-9]{4}([A-Z]{2})?$",
+              "type": "string",
+              "example": "2132WT"
+            }
+          },
+          {
+            "name": "CountryCode",
+            "in": "query",
+            "description": "The ISO2 destination country code",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "default": "NL",
+              "enum": [
+                "NL",
+                "BE"
+              ]
+            }
+          },
+          {
+            "name": "OriginCountryCode",
+            "in": "query",
+            "description": "The ISO2 country code of the origin country",
+            "schema": {
+              "type": "string",
+              "default": "NL",
+              "enum": [
+                "NL",
+                "BE"
+              ]
+            }
+          },
+          {
+            "name": "City",
+            "in": "query",
+            "description": "City of the destination address",
+            "schema": {
+              "type": "string",
+              "example": "Hoofddorp"
+            }
+          },
+          {
+            "name": "Street",
+            "in": "query",
+            "description": "The street name of the destination address",
+            "schema": {
+              "type": "string",
+              "example": "Siriusdreef"
+            }
+          },
+          {
+            "name": "HouseNumber",
+            "in": "query",
+            "description": "The house number of the destination address",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "example": 42
+            }
+          },
+          {
+            "name": "HouseNrExt",
+            "in": "query",
+            "description": "House number extension of the destination address",
+            "schema": {
+              "type": "string",
+              "example": "A"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The calculated date that the parcel needs to be shipped to PostNL",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "SentDate": {
+                      "type": "string",
+                      "example": "29-06-2022"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/deliverydateResponseInvalid"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid apikey",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PostCIF-DeliveryDateUnauthorized"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Method not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PostCIF-DeliveryDateMethodNotAllowed"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PostCIF-DeliveryDateTooManyRequest"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/deliverydateResponseError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "APIKeyHeader": {
+        "type": "apiKey",
+        "name": "apikey",
+        "in": "header"
+      }
+    },
+    "schemas": {
+      "deliverydateResponseInvalid": {
+        "type": "object",
+        "properties": {
+          "Date": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "Error": {
+            "type": "object",
+            "properties": {
+              "ErrorCode": {
+                "type": "string",
+                "example": "3000"
+              },
+              "ErrorDescription": {
+                "type": "string",
+                "example": "Request format is invalid"
+              }
+            }
+          },
+          "RequestId": {
+            "type": "string",
+            "example": "09fd61fe-0099-4349-b71d-dce5c2472be9"
+          }
+        }
+      },
+      "deliverydateResponseError": {
+        "type": "object",
+        "properties": {
+          "fault": {
+            "type": "object",
+            "properties": {
+              "faultstring": {
+                "type": "string",
+                "example": "Unexpected token in object literal"
+              },
+              "detail": {
+                "type": "object",
+                "properties": {
+                  "errorcode": {
+                    "type": "string",
+                    "example": "Validation Fault"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "PostCIF-DeliveryDateUnauthorized": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "example": "Failed to resolve API Key variable 'request.header.apikey'"
+          },
+          "http_status_code": {
+            "type": "number",
+            "example": 401
+          }
+        }
+      },
+      "PostCIF-DeliveryDateMethodNotAllowed": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "example": "Only GET & POST requests allowed"
+          },
+          "http_status_code": {
+            "type": "number",
+            "example": 405
+          }
+        }
+      },
+      "PostCIF-DeliveryDateTooManyRequest": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "example": "Too many requests. Rate limit exceeded!"
+          },
+          "http_status_code": {
+            "type": "number",
+            "example": 429
+          }
+        }
+      }
+    }
+  }
+}

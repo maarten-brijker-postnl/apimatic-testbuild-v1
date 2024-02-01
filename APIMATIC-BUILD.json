@@ -5,9 +5,10 @@
         "debug": {
             "publishReport": true
         },
-        "pageTitle": "PostNL Developer Portal: API's & SDK's",
-        "navTitle": "PostNL Developer Portal: API's & SDK's",
-        "logoUrl": "static/images/logo.png",
+        "pageTitle": "PostNL Ecommerce APIs",
+        "navTitle": "PostNL Ecommerce APIs",
+        "logoUrl": "static/images/logo.jpg",
+        "faviconUrl": "static/images/logo.jpg",
         "logoLink": "https://developer.postnl.nl/",
         "languageConfig": {
             "http": {},

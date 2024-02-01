@@ -1,0 +1,924 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "Locations API",
+    "description": "Retrieve PostNL pick up points",
+    "version": "v2_1"
+  },
+  "servers": [
+    {
+      "url": "https://api-sandbox.postnl.nl",
+      "description": "Non-Production server"
+    },
+    {
+      "url": "https://api.postnl.nl",
+      "description": "Production server"
+    }
+  ],
+  "paths": {
+    "/shipment/v2_1/locations/nearest": {
+      "get": {
+        "tags": [
+          "Locations"
+        ],
+        "summary": "Returns pickup locations nearest to the provided address.",
+        "description": "Request example:\n```\ncurl -X GET \"https://api-sandbox.postnl.nl/shipment/v2_1/locations/nearest?CountryCode=NL&PostalCode=2132WT&City=Hoofddorp&Street=Siriusdreef&HouseNumber=42&HouseNumberExtension=-60&DeliveryDate=24-12-2022&OpeningTime=09%3A00%3A00\" \\\n -H \"Accept: application/json\" \\\n -H \"apikey: APIKEY-HERE\" \\\n```\n",
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "CountryCode",
+            "in": "query",
+            "required": true,
+            "description": "The country of the recipient's address",
+            "schema": {
+              "type": "string",
+              "example": "NL",
+              "enum": [
+                "NL",
+                "BE"
+              ]
+            }
+          },
+          {
+            "name": "PostalCode",
+            "in": "query",
+            "description": "The zipcode of the recipient's address",
+            "required": true,
+            "schema": {
+              "pattern": "^[0-9]{4}([A-Z]{2})?$",
+              "type": "string",
+              "example": "2132WT"
+            }
+          },
+          {
+            "name": "City",
+            "in": "query",
+            "description": "The city of the recipient's address",
+            "schema": {
+              "type": "string",
+              "example": "Hoofddorp"
+            }
+          },
+          {
+            "name": "Street",
+            "in": "query",
+            "description": "The street name of the recipient's address",
+            "schema": {
+              "type": "string",
+              "example": "Siriusdreef"
+            }
+          },
+          {
+            "name": "HouseNumber",
+            "in": "query",
+            "description": "The house number of the recipient's address",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "example": 42
+            }
+          },
+          {
+            "name": "HouseNumberExtension",
+            "in": "query",
+            "description": "The house number extension of the recipient's address",
+            "schema": {
+              "type": "string",
+              "example": "-60"
+            }
+          },
+          {
+            "name": "DeliveryDate",
+            "in": "query",
+            "description": "The date of the earliest delivery date at the pickup location. Format:  dd-MM-yyyy. Note: this date cannot be in the past, otherwise an error is returned. If not provided, the present day is used as a default",
+            "schema": {
+              "pattern": "^[0-3]\\d-[0-1]\\d-[1-2]\\d{3}$",
+              "type": "string",
+              "example": "24-12-2022"
+            }
+          },
+          {
+            "name": "OpeningTime",
+            "in": "query",
+            "description": "Opening time filter. Format: hh:mm:ss. This field will be used to filter out locations that are closed at the time provided. If no opening time is provided all locations will be returned regardless of their opening times.",
+            "schema": {
+              "pattern": "^[0-2]\\d:[0-5]\\d:[0-5]\\d$",
+              "type": "string",
+              "example": "09:00:00"
+            }
+          },
+          {
+            "name": "DeliveryOptions",
+            "in": "query",
+            "description": "The pickup location types for which locations should be filtered. By default all location types are returned (PG = Retail points and parcel lockers). This can be used to filter on only parcel lockers (PA) or specifically exclude parcel lockers from the response (PG_EX).",
+            "style": "form",
+            "explode": false,
+            "schema": {
+              "type": "array",
+              "default": "PG",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "PG",
+                  "PA",
+                  "PG_EX"
+                ]
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Locations nearest to the address provided",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/locationsResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/locationsResponseInvalid"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PostCIF-LocationUnauthorized"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Method not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PostCIF-LocationMethodNotAllowed"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PostCIF-LocationTooManyRequest"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/locationsResponseError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/shipment/v2_1/locations/nearest/geocode": {
+      "get": {
+        "tags": [
+          "Locations"
+        ],
+        "summary": "Returns pickup locations nearest to the provided coordinates.",
+        "description": "Request example:\n```\ncurl -X GET \"https://api-sandbox.postnl.nl/shipment/v2_1/locations/nearest/geocode?Latitude=52.2864669620795&Longitude=4.68239055845954&CountryCode=NL&DeliveryDate=24-12-2022&OpeningTime=09%3A00%3A00\" \\\n -H \"Accept: application/json\" \\\n -H \"apikey: APIKEY-HERE\" \\\n```\n",
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Latitude",
+            "in": "query",
+            "description": "The latitude of the location",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "example": 52.2864669620795
+            }
+          },
+          {
+            "name": "Longitude",
+            "in": "query",
+            "description": "The longitude of the location",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "example": 4.68239055845954
+            }
+          },
+          {
+            "name": "CountryCode",
+            "in": "query",
+            "required": true,
+            "description": "The coutry for which the coordinates are provided",
+            "schema": {
+              "type": "string",
+              "example": "NL",
+              "enum": [
+                "NL",
+                "BE"
+              ]
+            }
+          },
+          {
+            "name": "DeliveryDate",
+            "in": "query",
+            "description": "The date of the earliest delivery date. Format:  dd-MM-yyyy. Note: this date cannot be in the past, otherwise an error is returned.",
+            "schema": {
+              "pattern": "^[0-3]\\d-[0-1]\\d-[1-2]\\d{3}$",
+              "type": "string",
+              "example": "24-12-2022"
+            }
+          },
+          {
+            "name": "OpeningTime",
+            "in": "query",
+            "description": "Opening time filter. Format: hh:mm:ss. This field will be used to filter out locations that are closed at the time provided.",
+            "schema": {
+              "pattern": "^[0-2]\\d:[0-5]\\d:[0-5]\\d$",
+              "type": "string",
+              "example": "09:00:00"
+            }
+          },
+          {
+            "name": "DeliveryOptions",
+            "in": "query",
+            "description": "The pickup location types for which locations should be filtered. By default all location types are returned (PG = Retail points and parcel lockers). This can be used to filter on only parcel lockers (PA) or specifically exclude parcel lockers from the response (PG_EX).",
+            "style": "form",
+            "explode": false,
+            "schema": {
+              "type": "array",
+              "default": "PG",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "PG",
+                  "PA",
+                  "PG_EX"
+                ]
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Locations nearest to the coordinates provided",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/locationsResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/locationsResponseInvalid"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PostCIF-LocationUnauthorized"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Method not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PostCIF-LocationMethodNotAllowed"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PostCIF-LocationTooManyRequest"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/locationsResponseError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/shipment/v2_1/locations/area": {
+      "get": {
+        "tags": [
+          "Locations"
+        ],
+        "summary": "Returns pickup locations within a provided area.",
+        "description": "Request example:\n```\ncurl -X GET \"https://api-sandbox.postnl.nl/shipment/v2_1/locations/area?LatitudeNorth=52.156439&LongitudeWest=5.015643&LatitudeSouth=52.017473&LongitudeEast=5.065254&CountryCode=NL&DeliveryDate=24-12-2023&OpeningTime=09%3A00%3A00\" \\\n -H \"Accept: application/json\" \\\n -H \"apikey: APIKEY-HERE\" \\\n```\n",
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "LatitudeNorth",
+            "in": "query",
+            "description": "The northmost coordinates of the area",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "example": 52.156439
+            }
+          },
+          {
+            "name": "LongitudeWest",
+            "in": "query",
+            "description": "The westmost coordinates of the area",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "example": 5.015643
+            }
+          },
+          {
+            "name": "LatitudeSouth",
+            "in": "query",
+            "description": "The southmost coordinates of the area",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "example": 52.017473
+            }
+          },
+          {
+            "name": "LongitudeEast",
+            "in": "query",
+            "description": "The eastmost coordinates of the area",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "example": 5.065254
+            }
+          },
+          {
+            "name": "CountryCode",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "NL",
+              "enum": [
+                "NL",
+                "BE"
+              ]
+            }
+          },
+          {
+            "name": "DeliveryDate",
+            "in": "query",
+            "description": "The date of the earliest delivery date. Format:  dd-MM-yyyy. Note: this date cannot be in the past, otherwise an error is returned.",
+            "schema": {
+              "pattern": "^[0-3]\\d-[0-1]\\d-[1-2]\\d{3}$",
+              "type": "string",
+              "example": "24-12-2023"
+            }
+          },
+          {
+            "name": "OpeningTime",
+            "in": "query",
+            "description": "Opening time filter. Format: hh:mm:ss. This field will be used to filter out locations that are closed at the time provided.",
+            "schema": {
+              "pattern": "^[0-2]\\d:[0-5]\\d:[0-5]\\d$",
+              "type": "string",
+              "example": "09:00:00"
+            }
+          },
+          {
+            "name": "DeliveryOptions",
+            "in": "query",
+            "description": "The pickup location types for which locations should be filtered. By default all location types are returned (PG = Retail points and parcel lockers). This can be used to filter on only parcel lockers (PA) or specifically exclude parcel lockers from the response (PG_EX).",
+            "style": "form",
+            "explode": false,
+            "schema": {
+              "type": "array",
+              "default": "PG",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "PG",
+                  "PA",
+                  "PG_EX"
+                ]
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Locations nearest to the area provided",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/locationsResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/locationsResponseInvalid"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PostCIF-LocationUnauthorized"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Method not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PostCIF-LocationMethodNotAllowed"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PostCIF-LocationTooManyRequest"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/locationsResponseError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/shipment/v2_1/locations/lookup": {
+      "get": {
+        "tags": [
+          "Locations"
+        ],
+        "summary": "Returns a specific pickup location",
+        "description": "Request example:\n```\ncurl -X GET \"https://api-sandbox.postnl.nl/shipment/v2_1/locations/lookup?LocationCode=216877\" \\\n -H \"Accept: application/json\" \\\n -H \"apikey: APIKEY-HERE\" \n```\n",
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "LocationCode",
+            "in": "query",
+            "description": "LocationCode information",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "216877"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Location information",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/locationResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/locationsResponseInvalid"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PostCIF-LocationUnauthorized"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Method not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PostCIF-LocationMethodNotAllowed"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PostCIF-LocationTooManyRequest"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/locationsResponseError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "APIKeyHeader": {
+        "type": "apiKey",
+        "name": "apikey",
+        "in": "header"
+      }
+    },
+    "schemas": {
+      "locationsResponse": {
+        "type": "object",
+        "properties": {
+          "GetLocationsResult": {
+            "type": "object",
+            "properties": {
+              "ResponseLocation": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/location"
+                }
+              }
+            }
+          }
+        }
+      },
+      "locationResponse": {
+        "type": "object",
+        "properties": {
+          "GetLocationsResult": {
+            "type": "object",
+            "properties": {
+              "ResponseLocation": {
+                "$ref": "#/components/schemas/location"
+              }
+            }
+          }
+        }
+      },
+      "location": {
+        "type": "object",
+        "properties": {
+          "Address": {
+            "type": "object",
+            "properties": {
+              "City": {
+                "type": "string",
+                "description": "The city of the pickup location address",
+                "example": "Hoofddorp"
+              },
+              "Countrycode": {
+                "type": "string",
+                "description": "The country of the pickup location address",
+                "example": "NL"
+              },
+              "HouseNr": {
+                "type": "integer",
+                "format": "int32",
+                "description": "The house number of the pickup location address",
+                "example": 42
+              },
+              "HouseNrExt": {
+                "type": "string",
+                "description": "The house number extension of the pickup location address",
+                "example": "-60"
+              },
+              "Remark": {
+                "type": "string",
+                "description": "Additional information about the pickup location",
+                "example": "Dit is een Pakketpunt. Pakketten die je op werkdagen vóór lichtingstijd afgeeft, bezorgen we binnen Nederland de volgende dag. Op zaterdag worden alléén pakketten die je afgeeft voor 15:00 uur maandag bezorgd."
+              },
+              "Street": {
+                "type": "string",
+                "description": "The street of the pickup location address",
+                "example": "Siriusdreef"
+              },
+              "Zipcode": {
+                "type": "string",
+                "description": "The zipcode of the pickup location address",
+                "example": "2132WT"
+              }
+            }
+          },
+          "DeliveryOptions": {
+            "type": "object",
+            "description": "The options belonging to the pickup location. The delivery options RETA, UL, PU, DO, BW, RT and BWUL can be shown in the response. Please ignore these codes. These codes are internal PostNL codes.",
+            "properties": {
+              "string": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "example": [
+                  "RETA",
+                  "DO",
+                  "PG",
+                  "RT"
+                ]
+              }
+            }
+          },
+          "Distance": {
+            "type": "integer",
+            "format": "int32",
+            "description": "The distance from the address/coordinates provided in the request to the pickup location returned. Distance in meters.",
+            "example": 102
+          },
+          "Latitude": {
+            "type": "number",
+            "format": "float",
+            "description": "The latitude of the pickup location",
+            "example": 52.10223388
+          },
+          "LocationCode": {
+            "type": "integer",
+            "format": "int32",
+            "description": "The pickup location identifier",
+            "example": 163043
+          },
+          "Longitude": {
+            "type": "number",
+            "format": "float",
+            "description": "The longitude of the pickup location",
+            "example": 5.13634192
+          },
+          "Name": {
+            "type": "string",
+            "description": "The name of the pickup location",
+            "example": "Tonys Tabakszaak"
+          },
+          "OpeningHours": {
+            "type": "object",
+            "description": "The standard opening times of the pickup location",
+            "properties": {
+              "Monday": {
+                "type": "object",
+                "properties": {
+                  "string": {
+                    "type": "string",
+                    "example": "08:00-18:00"
+                  }
+                }
+              },
+              "Tuesday": {
+                "type": "object",
+                "properties": {
+                  "string": {
+                    "type": "string",
+                    "example": "08:00-18:00"
+                  }
+                }
+              },
+              "Wednesday": {
+                "type": "object",
+                "properties": {
+                  "string": {
+                    "type": "string",
+                    "example": "08:00-18:00"
+                  }
+                }
+              },
+              "Thursday": {
+                "type": "object",
+                "properties": {
+                  "string": {
+                    "type": "string",
+                    "example": "08:00-18:00"
+                  }
+                }
+              },
+              "Friday": {
+                "type": "object",
+                "properties": {
+                  "string": {
+                    "type": "string",
+                    "example": "08:00-18:00"
+                  }
+                }
+              },
+              "Saturday": {
+                "type": "object",
+                "properties": {
+                  "string": {
+                    "type": "string",
+                    "example": "10:00-16:00"
+                  }
+                }
+              },
+              "Sunday": {
+                "type": "object",
+                "properties": {
+                  "string": {
+                    "type": "string",
+                    "example": "10:00-14:00"
+                  }
+                }
+              }
+            }
+          },
+          "Sustainability": {
+            "type": "object",
+            "description": "Sustainability score; see [Sustainability codes](#tag/Reference-codes/Sustainability-codes) for possible values.",
+            "properties": {
+              "Code": {
+                "type": "string",
+                "description": "Sustainability score code",
+                "example": "02"
+              },
+              "Description": {
+                "type": "string",
+                "description": "Sustainability score code description",
+                "example": "Sustainable option"
+              }
+            }
+          },
+          "PartnerName": {
+            "type": "string",
+            "description": "The partner name belonging to the pickup location. Can be ignored, no longer used.",
+            "example": "PostNL"
+          },
+          "RetailNetworkID": {
+            "type": "string",
+            "description": "The retail network belonging to the pickup location. Can be ignored, no longer used",
+            "example": "PNPNL-01"
+          }
+        }
+      },
+      "locationsResponseError": {
+        "type": "object",
+        "properties": {
+          "fault": {
+            "type": "object",
+            "properties": {
+              "faultstring": {
+                "type": "string",
+                "example": "Unexpected token in object literal"
+              },
+              "detail": {
+                "type": "object",
+                "properties": {
+                  "errorcode": {
+                    "type": "string",
+                    "example": "Validation Fault"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "locationsResponseInvalid": {
+        "type": "object",
+        "properties": {
+          "Date": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "Error": {
+            "type": "object",
+            "properties": {
+              "ErrorCode": {
+                "type": "string",
+                "example": "3000"
+              },
+              "ErrorDescription": {
+                "type": "string",
+                "example": "Request format is invalid"
+              }
+            }
+          },
+          "RequestId": {
+            "type": "string",
+            "example": "09fd61fe-0099-4349-b71d-dce5c2472be9"
+          }
+        }
+      },
+      "PostCIF-LocationUnauthorized": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "example": "Failed to resolve API Key variable 'request.header.apikey'"
+          },
+          "http_status_code": {
+            "type": "number",
+            "example": 401
+          }
+        }
+      },
+      "PostCIF-LocationMethodNotAllowed": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "example": "Only GET & POST requests allowed"
+          },
+          "http_status_code": {
+            "type": "number",
+            "example": 405
+          }
+        }
+      },
+      "PostCIF-LocationTooManyRequest": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "example": "Too many requests. Rate limit exceeded!"
+          },
+          "http_status_code": {
+            "type": "number",
+            "example": 429
+          }
+        }
+      }
+    }
+  }
+}

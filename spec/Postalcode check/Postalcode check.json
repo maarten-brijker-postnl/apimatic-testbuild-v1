@@ -1,0 +1,333 @@
+{
+	"openapi": "3.0.1",
+	"info": {
+		"title": "Checkout Postalcode Check API",
+		"description": "Check Dutch address data that is entered in your webshop checkout.",
+		"version": "v1"
+	},
+	"servers": [{
+			"url": "https://api-sandbox.postnl.nl",
+			"description": "Non-Production server"
+		}, {
+			"url": "https://api.postnl.nl",
+			"description": "Production server"
+		}
+	],
+	"security": [{
+			"APIKeyHeader": []
+		}
+	],
+	"paths": {
+		"/shipment/checkout/v1/postalcodecheck": {
+			"get": {
+				"tags": [
+					"Postalcode check"
+				],
+				"summary": "Checkout postalcode check",
+				"description": "Please note that this API is not available on the sandbox environment.\n\nRequest example:\n```\ncurl -X GET \"https://api.postnl.nl/shipment/checkout/v1/postalcodecheck?postalcode=3571ZZ&amp;housenumber=74&amp;housenumberaddition=bis\" \\\n -H \"Accept: application/json\" \\\n -H \"apikey: APIKEY-HERE\" \n```\n",
+				"security": [{
+						"APIKeyHeader": []
+					}
+				],
+				"parameters": [{
+						"name": "postalcode",
+						"in": "query",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"example": "3571ZZ",
+							"minLength": 6,
+							"maxLength": 6
+						}
+					}, {
+						"name": "housenumber",
+						"in": "query",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"example": 74,
+							"minLength": 1,
+							"maxLength": 5
+						}
+					}, {
+						"name": "housenumberaddition",
+						"in": "query",
+						"schema": {
+							"type": "string",
+							"example": "bis",
+							"maxLength": 6
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Success",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/cpcResponse"
+								},
+								"examples": {
+									"Single address found": {
+										"$ref": "#/components/examples/cpcSuccessSingleAddress"
+									},
+									"Multiple addresses found": {
+										"$ref": "#/components/examples/cpcSuccessMultipleAddresses"
+									},
+									"No address found": {
+										"$ref": "#/components/examples/cpcSuccessNoAddress"
+									}
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Bad request",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/cpcResponseInvalid"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Invalid apikey",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/CheckoutPostalCodecheckUnauthorized"
+								}
+							}
+						}
+					},
+					"405": {
+						"description": "Method not allowed",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/CheckoutPostalCodecheckMethodNotAllowed"
+								}
+							}
+						}
+					},
+					"429": {
+						"description": "Too many requests",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/CheckoutPostalCodecheckTooManyRequest"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal server error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/cpcResponseError"
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	},
+	"components": {
+		"schemas": {
+			"cpcResponse": {
+				"type": "array",
+				"description": "Array of addresses found. If no exact match is available, multiple addresses will be returned.",
+				"items": {
+					"type": "object",
+					"properties": {
+						"city": {
+							"type": "string",
+							"description": "City of requested address",
+							"example": "UTRECHT"
+						},
+						"postalCode": {
+							"type": "string",
+							"description": "Postalcode of requested address",
+							"example": "3571ZZ"
+						},
+						"streetName": {
+							"type": "string",
+							"description": "Street of requested address",
+							"example": "Molengraaffplantsoen"
+						},
+						"houseNumber": {
+							"type": "integer",
+							"description": "Housenumber of requested address",
+							"example": 74
+						},
+						"houseNumberAddition": {
+							"type": "string",
+							"description": "Housenumber addition of requested address if applicable",
+							"example": "bis"
+						},
+						"formattedAddress": {
+							"type": "array",
+							"description": "Full formatted address according to PostNL standard (returns each line as a separate string)",
+							"items": {
+								"type": "string"
+							},
+							"example": [
+								"Molengraaffplantsoen 74",
+								"3571ZZ UTRECHT"
+							]
+						}
+					}
+				}
+			},
+			"cpcResponseInvalid": {
+				"type": "object",
+				"properties": {
+					"errors": {
+						"type": "array",
+						"items": {
+							"type": "object",
+							"properties": {
+								"status": {
+									"type": "string",
+									"example": "400"
+								},
+								"title": {
+									"type": "string",
+									"example": "Bad request"
+								},
+								"detail": {
+									"type": "string",
+									"example": "Input field 'housenumber' must be a number"
+								}
+							}
+						}
+					}
+				}
+			},
+			"cpcResponseError": {
+				"type": "object",
+				"properties": {
+					"fault": {
+						"type": "object",
+						"properties": {
+							"faultstring": {
+								"type": "string",
+								"example": "Unexpected token in object literal"
+							},
+							"detail": {
+								"type": "object",
+								"properties": {
+									"errorcode": {
+										"type": "string",
+										"example": "Validation Fault"
+									}
+								}
+							}
+						}
+					}
+				}
+			},
+			"CheckoutPostalCodecheckUnauthorized": {
+				"type": "object",
+				"properties": {
+					"message": {
+						"type": "string",
+						"example": "Failed to resolve API Key variable 'request.header.apikey'"
+					},
+					"http_status_code": {
+						"type": "number",
+						"example": 401
+					}
+				}
+			},
+			"CheckoutPostalCodecheckMethodNotAllowed": {
+				"type": "object",
+				"properties": {
+					"message": {
+						"type": "string",
+						"example": "Only POST requests allowed"
+					},
+					"http_status_code": {
+						"type": "number",
+						"example": 405
+					}
+				}
+			},
+			"CheckoutPostalCodecheckTooManyRequest": {
+				"type": "object",
+				"properties": {
+					"message": {
+						"type": "string",
+						"example": "Too many requests. Rate limit exceeded!"
+					},
+					"http_status_code": {
+						"type": "number",
+						"example": 429
+					}
+				}
+			}
+		},
+		"examples": {
+			"cpcSuccessSingleAddress": {
+				"value": [{
+						"city": "UTRECHT",
+						"postalCode": "3571ZZ",
+						"streetName": "Molengraaffplantsoen",
+						"houseNumber": 74,
+						"houseNumberAddition": "bis",
+						"formattedAddress": [
+							"Molengraaffplantsoen 74 bis",
+							"3571ZZ UTRECHT"
+						]
+					}
+				]
+			},
+			"cpcSuccessMultipleAddresses": {
+				"value": [{
+						"city": "UTRECHT",
+						"postalCode": "3532VA",
+						"streetName": "Bilderdijkstraat",
+						"houseNumber": 9,
+						"formattedAddress": [
+							"Bilderdijkstraat 9",
+							"3532VA UTRECHT"
+						]
+					}, {
+						"city": "UTRECHT",
+						"postalCode": "3532VA",
+						"streetName": "Bilderdijkstraat",
+						"houseNumber": 9,
+						"houseNumberAddition": "A",
+						"formattedAddress": [
+							"Bilderdijkstraat 9 A",
+							"3532VA UTRECHT"
+						]
+					}, {
+						"city": "UTRECHT",
+						"postalCode": "3532VA",
+						"streetName": "Bilderdijkstraat",
+						"houseNumber": 9,
+						"houseNumberAddition": "ABS",
+						"formattedAddress": [
+							"Bilderdijkstraat 9 ABS",
+							"3532VA UTRECHT"
+						]
+					}
+				]
+			},
+			"cpcSuccessNoAddress": {
+				"value": []
+			}
+		},
+		"securitySchemes": {
+			"APIKeyHeader": {
+				"type": "apiKey",
+				"name": "apikey",
+				"in": "header"
+			}
+		}
+	}
+}

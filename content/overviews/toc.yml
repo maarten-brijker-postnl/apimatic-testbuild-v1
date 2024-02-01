@@ -1,0 +1,113 @@
+toc:
+  - group: SEND & TRACK
+    items:
+    - group: Shipment
+      items:
+        - page: Overview
+          file: ShipmentOverview.md
+        - generate:
+          from: endpoint
+          endpoint-name: generateShipmentLabel
+          endpoint-group: Shipment
+    - group: Track & Trace
+      items: 
+        - page: Overview
+          file: ShippingStatusOverview.md 
+        - generate:
+          from: endpoint
+          endpoint-name: Returns the statuses for a particular barcode
+          endpoint-group: Track & Trace
+        - generate:
+          from: endpoint
+          endpoint-name: Get status information by customer reference
+          endpoint-group: Track & Trace
+        - generate:
+          from: endpoint
+          endpoint-name: Returns the signature of a particular shipment
+          endpoint-group: Track & Trace
+        - generate:
+          from: endpoint
+          endpoint-name: Returns the updated statuses for a particular customer number
+          endpoint-group: Track & Trace
+    - group: Barcode
+      items:
+        - page: Overview
+          file: BarcodeOverview.md
+        - generate:
+          from: endpoint
+          endpoint-name: Generate a unique barcode
+          endpoint-group: Barcode
+    - group: Labelling
+      items:
+        - page: Overview
+          file: LabellingOverview.md
+        - generate:
+          from: endpoint
+          endpoint-name: Generate a label and confirmation
+          endpoint-group: Labelling
+    - group: Confirming
+      items:
+        - page: Overview
+          file: ConfirmingOverview.md            
+        - generate:
+          from: endpoint
+          endpoint-name: Confirm a shipment to PostNL
+          endpoint-group: Confirming
+  - group: CHECKOUT & DELIVERY OPTIONS
+    items:
+    - group: Checkout
+      items:
+        - page: Overview
+          file: CheckoutOverview.md           
+        - generate:
+          from: endpoint
+          endpoint-name: Checkout
+          endpoint-group: Checkout
+    - group: Postalcode check
+      items:  
+        - page: Overview
+          file: PostalcodeCheckOverview.md 
+        - generate:
+          from: endpoint
+          endpoint-name: Checkout postalcode check
+          endpoint-group: Postalcode check
+    - group: Deliverydate
+      items: 
+        - page: Overview
+          file: DeliverydateOverview.md 
+        - generate:
+          from: endpoint
+          endpoint-name: Calculate expected delivery date
+          endpoint-group: Deliverydate
+        - generate:
+          from: endpoint
+          endpoint-name: Calculate required shipping date
+          endpoint-group: Deliverydate
+    - group: Timeframes
+      items:
+        - page: Overview
+          file: TimeframesOverview.md  
+        - generate:
+          from: endpoint
+          endpoint-name: Retrieve expected delivery timeframes
+          endpoint-group: Timeframes
+    - group: Locations
+      items:  
+        - page: Overview
+          file: LocationsOverview.md 
+        - generate:
+          from: endpoint
+          endpoint-name: Returns pickup locations nearest to the provided address.
+          endpoint-group: Locations
+        - generate:
+          from: endpoint
+          endpoint-name: Returns pickup locations nearest to the provided coordinates.
+          endpoint-group: Locations
+        - generate:
+          from: endpoint
+          endpoint-name: Returns pickup locations within a provided area.
+          endpoint-group: Locations
+        - generate:
+          from: endpoint
+          endpoint-name: Returns a specific pickup location
+          endpoint-group: Locations

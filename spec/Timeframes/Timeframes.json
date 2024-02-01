@@ -1,0 +1,475 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "Timeframe API",
+    "description": "Calculate expected delivery timeframes based on selected delivery options",
+    "version": "v2_1"
+  },
+  "servers": [
+    {
+      "url": "https://api-sandbox.postnl.nl",
+      "description": "Non-Production server"
+    },
+    {
+      "url": "https://api.postnl.nl",
+      "description": "Production server"
+    }
+  ],
+  "security": [
+    {
+      "APIKeyHeader": []
+    }
+  ],
+  "paths": {
+    "/shipment/v2_1/calculate/timeframes": {
+      "get": {
+        "tags": [
+          "Timeframes"
+        ],
+        "summary": "Retrieve expected delivery timeframes",
+        "description": "Request example:\n```\ncurl -X GET \"https://api-sandbox.postnl.nl/shipment/v2_1/calculate/timeframes?AllowSundaySorting=false&StartDate=30-06-2022&EndDate=02-07-2022&CountryCode=NL&PostalCode=2132WT&HouseNumber=42&HouseNrExt=A&City=Hoofddorp&Street=Siriusdreef&Options=Daytime%2CEvening\" \\\n -H \"Accept: application/json\" \\\n -H \"apikey: APIKEY-HERE\" \\\n```\n",
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "AllowSundaySorting",
+            "in": "query",
+            "description": "Whether or not the requesting party allows for Sunday sorting (which leads to delivery on Monday).",
+            "required": true,
+            "schema": {
+              "type": "boolean",
+              "example": false
+            }
+          },
+          {
+            "name": "StartDate",
+            "in": "query",
+            "description": "Date of the beginning of the timeframe. Format: dd-MM-yyyy",
+            "required": true,
+            "schema": {
+              "pattern": "^([0-3]\\d-[0-1]\\d-[1-2]\\d{3})$",
+              "type": "string",
+              "example": "30-06-2022"
+            }
+          },
+          {
+            "name": "EndDate",
+            "in": "query",
+            "description": "Date of the enddate of the timeframe. Format:dd-MM-yyyy. Enddate may not be before StartDate.",
+            "required": true,
+            "schema": {
+              "pattern": "^([0-3]\\d-[0-1]\\d-[1-2]\\d{3})$",
+              "type": "string",
+              "example": "02-07-2022"
+            }
+          },
+          {
+            "name": "CountryCode",
+            "in": "query",
+            "description": "The ISO2 country code of the delivery address",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "NL",
+              "enum": [
+                "NL",
+                "BE"
+              ]
+            }
+          },
+          {
+            "name": "PostalCode",
+            "in": "query",
+            "description": "Zipcode of the delivery address",
+            "required": true,
+            "schema": {
+              "pattern": "^[0-9]{4}([A-Z]{2})?$",
+              "type": "string",
+              "example": "2132WT"
+            }
+          },
+          {
+            "name": "HouseNumber",
+            "in": "query",
+            "description": "The house number of the delivery address",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "example": 42
+            }
+          },
+          {
+            "name": "HouseNrExt",
+            "in": "query",
+            "description": "House number extension of the delivery address",
+            "schema": {
+              "type": "string",
+              "example": "A"
+            }
+          },
+          {
+            "name": "City",
+            "in": "query",
+            "description": "City of the delivery address",
+            "schema": {
+              "type": "string",
+              "example": "Hoofddorp"
+            }
+          },
+          {
+            "name": "Street",
+            "in": "query",
+            "description": "The street name of the delivery address",
+            "schema": {
+              "type": "string",
+              "example": "Siriusdreef"
+            }
+          },
+          {
+            "name": "Options",
+            "in": "query",
+            "description": "The delivery options for which expected timeframes should be calculated. At least one delivery option must be specified. Multiple values should be comma-separated.",
+            "required": true,
+            "style": "form",
+            "explode": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "Daytime",
+                  "Today",
+                  "Sameday",
+                  "Evening",
+                  "Morning",
+                  "Noon",
+                  "Sunday",
+                  "Afternoon"
+                ]
+              },
+              "example": [
+                "Daytime",
+                "Evening",
+                "Sunday"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Calculated delivery timeframes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/timeframeResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/timeframeResponseInvalid"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PostCIF-TimeframeUnauthorized"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Method not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PostCIF-TimeframeMethodNotAllowed"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PostCIF-TimeframeTooManyRequest"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/timeframeResponseError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "APIKeyHeader": {
+        "type": "apiKey",
+        "name": "apikey",
+        "in": "header"
+      }
+    },
+    "schemas": {
+      "timeframeResponse": {
+        "type": "object",
+        "properties": {
+          "Timeframes": {
+            "type": "object",
+            "properties": {
+              "Timeframe": {
+                "type": "array",
+                "description": "A calculated delivery timeframe",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "Date": {
+                      "type": "string",
+                      "description": "The expected date of delivery",
+                      "example": "02-07-2022"
+                    },
+                    "Timeframes": {
+                      "type": "object",
+                      "properties": {
+                        "TimeframeTimeframe": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "From": {
+                                "type": "string",
+                                "description": "The start time of the expected delivery window",
+                                "example": "12:30:00"
+                              },
+                              "Options": {
+                                "type": "object",
+                                "description": "The delivery option for which the timeframe is calculated. See [Delivery Options](#tag/Reference-codes/Delivery-options) for possible values.",
+                                "properties": {
+                                  "string": {
+                                    "type": "string",
+                                    "enum": [
+                                      "Daytime",
+                                      "Today",
+                                      "Sameday",
+                                      "Evening",
+                                      "Morning",
+                                      "Noon",
+                                      "Sunday",
+                                      "Afternoon",
+                                      "Today"
+                                    ],
+                                    "example": "Daytime"
+                                  }
+                                }
+                              },
+                              "To": {
+                                "type": "string",
+                                "description": "The end time of the expected delivery window",
+                                "example": "14:30:00"
+                              },
+                              "Sustainability": {
+                                "type": "object",
+                                "description": "Sustainability score",
+                                "properties": {
+                                  "Code": {
+                                    "type": "string",
+                                    "description": "Sustainability score code",
+                                    "example": "02"
+                                  },
+                                  "Description": {
+                                    "type": "string",
+                                    "description": "Sustainability score code description",
+                                    "example": "Sustainable option"
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "ReasonNoTimeframes": {
+            "type": "object",
+            "properties": {
+              "ReasonNoTimeframe": {
+                "type": "array",
+                "description": "The reason why no timeframe was returned",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "Code": {
+                      "type": "string",
+                      "description": "The reason code",
+                      "example": "1"
+                    },
+                    "Date": {
+                      "type": "string",
+                      "description": "The date associated with the reason no timeframe was calculated",
+                      "example": "02-07-2022"
+                    },
+                    "Description": {
+                      "type": "string",
+                      "description": "The description associated with the reason no timeframe was calculated",
+                      "example": "Delivery date not allowed"
+                    },
+                    "Options": {
+                      "type": "object",
+                      "description": "The option for which no timeframe was calculated for a specific date",
+                      "properties": {
+                        "string": {
+                          "type": "string",
+                          "enum": [
+                            "Daytime",
+                            "Today",
+                            "Sameday",
+                            "Evening",
+                            "Morning",
+                            "Noon",
+                            "Sunday",
+                            "Afternoon",
+                            "Today"
+                          ],
+                          "example": "Evening"
+                        }
+                      }
+                    },
+                    "Sustainability": {
+                      "type": "object",
+                      "description": "Sustainability score",
+                      "properties": {
+                        "Code": {
+                          "type": "string",
+                          "description": "Sustainability score code",
+                          "example": "02"
+                        },
+                        "Description": {
+                          "type": "string",
+                          "description": "Sustainability score code description",
+                          "example": "Sustainable option"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "timeframeResponseInvalid": {
+        "type": "object",
+        "properties": {
+          "Date": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "Error": {
+            "type": "object",
+            "properties": {
+              "ErrorCode": {
+                "type": "string",
+                "example": "3000"
+              },
+              "ErrorDescription": {
+                "type": "string",
+                "example": "Request format is invalid"
+              }
+            }
+          },
+          "RequestId": {
+            "type": "string",
+            "example": "09fd61fe-0099-4349-b71d-dce5c2472be9"
+          }
+        }
+      },
+      "timeframeResponseError": {
+        "type": "object",
+        "properties": {
+          "fault": {
+            "type": "object",
+            "properties": {
+              "faultstring": {
+                "type": "string",
+                "example": "Unexpected token in object literal"
+              },
+              "detail": {
+                "type": "object",
+                "properties": {
+                  "errorcode": {
+                    "type": "string",
+                    "example": "Validation Fault"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "PostCIF-TimeframeUnauthorized": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "example": "Failed to resolve API Key variable 'request.header.apikey'"
+          },
+          "http_status_code": {
+            "type": "number",
+            "example": 401
+          }
+        }
+      },
+      "PostCIF-TimeframeMethodNotAllowed": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "example": "Only GET & POST requests allowed"
+          },
+          "http_status_code": {
+            "type": "number",
+            "example": 405
+          }
+        }
+      },
+      "PostCIF-TimeframeTooManyRequest": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "example": "Too many requests. Rate limit exceeded!"
+          },
+          "http_status_code": {
+            "type": "number",
+            "example": 429
+          }
+        }
+      }
+    }
+  }
+}
