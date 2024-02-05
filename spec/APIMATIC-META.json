@@ -29,5 +29,6 @@
         ]
       }
     ]
-  }
+  },
+  "Description": "This is an API description. Add as many details as you like."
 }
