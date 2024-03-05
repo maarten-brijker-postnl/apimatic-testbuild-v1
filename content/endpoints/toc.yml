@@ -5,6 +5,8 @@ toc:
       items:
         - page: Overview
           file: ShipmentOverview.md
+        - page: Guidelines
+          file: ShipmentGuidelines.md
         - generate:
           from: endpoint
           endpoint-name: generateShipmentLabel

@@ -1,4 +1,5 @@
 {
+  "Description": "This is an API description. Add as many details as you like.",
   "MergeConfiguration": {
       "MergeApis": true,
       "MergedApiName": "PostNL API and SDK"
@@ -30,5 +31,9 @@
       }
     ]
   },
-  "Description": "This is an API description. Add as many details as you like."
+  "CodeGenSettings": {
+    "ReturnCompleteHttpResponse": true,
+    "Retries": 3,
+    "BrandLabel": "PostNL"
+  }
 }

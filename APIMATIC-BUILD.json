@@ -23,7 +23,8 @@
                 }
             },
             "enableExport": false,
-            "enableConsoleCalls": true
+            "enableConsoleCalls": true,
+            "enableAnalytics": true
         }
     }
 }

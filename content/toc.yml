@@ -6,13 +6,13 @@ toc:
         from: getting-started
   - group: Guides
     dir: guides
-    # The Endpoint and Models sections contain auto-generated content. The 'generate' and 'from' directives instruct APIMatic's Docs generation service
-    # to generate and insert these sections here.
   - group: API Endpoints
-    dir: overviews
+    dir: endpoints
   - group: Reference Data
     dir: reference data
   - group: Support
     dir: support
+    # The Models section contain auto-generated content. The 'generate' and 'from' directives instruct APIMatic's Docs generation service
+    # to generate and insert these sections here.
   - generate: Models
     from: models
