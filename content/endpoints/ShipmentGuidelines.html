@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html>
+  <body>
+  <h1>Shipping API Guidelines</h1>
+  <h3>All-in-one Shipping API</h3>
+  <p>This API combines the functionality of the existing Barcode, Labelling, Confirmation and Easy Return APIs. Integration of the Barcode API lets you generate unique barcodes for each shipment whilst cutting down on the number of API requests.</p>
+  <details>
+    <summary><em><b>All-in-one</b></em></summary>
+    <div>
+      <p><b>Shipping labels</b></p>
+      <p>The label that are send to you is not suited for scaling, for the measures of the label are carefully designed to ease the parcel through our process.</p>
+      <p><b>Barcodes</b></p>
+      <p>It is possible to send a barcode in the request. But if you leave the barcode out of your request an unique barcode will be generated automatically. Please check the <a href="https://docs.api.postnl.nl/#/http/api-endpoints/send-track/barcode/overview" target="_blank" rel="noopener noreferrer">Barcode API</a> page for specific barcode guidelines.</p>
+      <p><i>NOTE: This is not possible for additional barcodes in Label in the box (return barcode), multi-collo and Combilabels 'Parcels non EU' with productcode 4945 (downpartner barcode) shipment requests. And also International Mail & Packet products (PEPS) barcodes cannot be generated automatically by using this service.</i></p>
+      <p><b>Confirmation</b></p>
+      <p>This API contains the possibility to create a label and the PostNL confirmation. This service sends the confirmation to the PostNL systems and upon receiving the confirmation, the service sends back a filled in label to print and to stick on the parcel.</p>
+      <p>With the Confirm boolean in the request (true of false), you can determine if you want to confirm the shipment in the same call or not.</p>
+    </div>
+  </details>
+  <br>
+  <details>
+    <summary><em><b>Printing</b></em></summary>
+    <div>
+      <p><b>Print quality for shipping labels</b></p>
+      <p>Parcels are sometimes delayed as a result of poorly-printed shipping labels, because we are unable to scan the barcode. To prevent this, we ask to pay close attention to the print quality of your labels. That way, we can apply smarter sorting to your parcels, deliver faster and achieve more satisfied customers. Please check <a href="https://www.postnl.nl/Images/printkwaliteit-verzendlabels_tcm10-227254.pdf" target="_blank" rel="noopener noreferrer">this link</a> for more information.</p>
+      <p><b>Printertypes</b></p>
+      <p>A printer type must be specified in the request. The API is capable of generating a wide range of output format. See the printer types below for the possible values. Please choose the type that fits best with your local printing situation.<br>
+      GraphicFile|GIF 200, 300 and 600 dpi<br>
+      GraphicFile|JPG 200,300 and 600 dpi<br>
+      GraphicFile|PDF<br>
+      GraphicFile|PDF|MergeA, MergeB, MergeC and MergeD<br>
+      Zebra|Generic ZPL II 200, 300 and 600 dpi*<br>
+      <small><i>*It is not recommended to send .pdf files/labels directly to a Zebra printer If you want to send it directly to your Zebra printer, please use .gif files or the native (generic) zpl printer type.</i></small></p>
+    </div>
+  </details>
+  <br>
+  <details>
+    <summary><em><b>Sending type</b></em></summary>
+    <div>
+      <p><b>Label types</b></p>
+      <p>The Label type helps you to determine what document is returned. In most cases, only a Label is returned. The following label types are possible:</p>
+      <table>
+        <tbody>
+          <tr>
+            <td>
+              <p><strong>Labeltype</strong></p>
+            </td>
+            <td>
+              <p><strong>Description</strong></p>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <p>Label (A6)</p>
+            </td>
+            <td>
+              <p>normal shipping label for all shipments except for Parcels Non-EU</p>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <p>BusPakjeExtra (A6)</p>
+            </td>
+            <td>
+              <p>shipping label for parcels that fit in a mailbox</p>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <p>CODcard Kabinet (21 x 10,16 cm)</p>
+            </td>
+            <td>
+              <p>COD card as required for Dutch domestic COD shipments</p>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <p>CN23 form (A5)</p>
+            </td>
+            <td>
+              <p>customs form for Parcels Non-EU shipments</p>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <p>CP71 form (A5)</p>
+            </td>
+            <td>
+              <p>customs form for Parcels Non-EU shipments</p>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <p>Commercialinvoice (A4)</p>
+            </td>
+            <td>
+              <p>commercial invoice for Parcels Non-EU shipments</p>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <p>Return Label (A6)</p>
+            </td>
+            <td>
+              <p>normal shipping label for reverse logistics</p>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <p><u>Productcode 4945:</u></p>
+      <p>ShipmentType parameter Gift or Documents: CN23 / CP71<br>ShipmentType parameter Commercial Goods, Commercial Sample or Returned Goods: CN23/ CP71/ CommercialInvoice<br></p>      
+      <p><b>Address types</b></p>
+      <p>PostNL internal applications validate the receiver address. In case the spelling of addresses should be different according to our PostNL information, the address details will be corrected. This can be noticed in Track & Trace. The API will not add address details. Street and City fields will only be printed when they are in the call towards the Shipping or Labelling API. The element Address type is a code in the request. Possible values are:</p>
+      <p><strong>Code &nbsp Description</strong></p>
+      <p>01 &nbsp Receiver</p>
+      <p>02 &nbsp Sender</p>
+      <p>03 &nbsp Alternative sender address</p>
+      <p>04 &nbsp Collection address</p>
+      <p>08 &nbsp Return address*</p>
+      <p>09 &nbsp Delivery address (for use with Pick up at PostNL location)</p>
+      <p><small>* When using the ‘label in the box return label', it is mandatory to use an Antwoordnummer in AddressType 08. This cannot be a regular address.</small></p>
+      <p>Remarks: Within the CustomerType, only AddressType 02 can be used. This Type can also be placed in the ShipmentType. Within the ShipmentType, at least ShipmentType with 01 is required.</p>
+      <p><b>Shipment type</b></p>
+      <p>The element Shipment type is a code in the request. Possible values are:</p>
+      <table>
+        <tbody>
+          <tr>
+            <td>
+              <p><strong>Code</strong></p>
+            </td>
+            <td>
+              <p><strong>Description</strong></p>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <p>01</p>
+            </td>
+            <td>
+              <p>Receiver</p>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <p>02</p>
+            </td>
+            <td>
+              <p>Sender</p>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <p>03</p>
+            </td>
+            <td>
+              <p>Alternative sender address</p>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <p>04</p>
+            </td>
+            <td>
+              <p>Collection address</p>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <p>08</p>
+            </td>
+            <td>
+              <p>Return address*</p>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <p>09</p>
+            </td>
+            <td>
+              <p>Delivery address (for use with Pickup at PostNL location)</p>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <p><br><small>* When using the ‘label in the box return label', it is mandatory to use a Antwoordnummer in AddressType 08. This cannot be a regular address.</small></p>
+      <p>The following rules apply:</p>
+      <ul>
+        <li>If there is no Address specified with AddressType = 02, the data from Customer/Address will be added to the list as AddressType 02. If there is no Customer/Address, the message will be rejected.</li>
+        <li>An Address with AddressType = 02 can be specified. In this case, no Customer/Address has to be specified.</li>
+        <li>At least one other AddressType must be specified, other than AddressType 02. In most cases this will be AddressType 01, the receiver address.</li>
+      </ul>
+      <p><b>Contact type</b></p>
+      <p>Contact type has the elements Email, SMSNr and TelNr. These fields have a dependency with each other. At least one of these three fields must be filled mandatory for certain products/ product codes (e.g. Evening/Sameday delivery, Pickup at PostNL location). Two or three can be filled as well.</p>
+      <table>
+        <tbody>
+          <tr>
+            <td>
+              <p><strong>Code</strong></p>
+            </td>
+            <td>
+              <p><strong>Description</strong></p>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <p>01</p>
+            </td>
+            <td>
+              <p>Receiver</p>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <p>02</p>
+            </td>
+            <td>
+              <p>Sender</p>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <p>Remark: Please add the e-mail address of the receiver to improve the Mijn PostNL experience of your customer.</p>
+    </div>
+  </details>
+  <br>
+  <details>
+    <summary><em><b>Multiple orders/shipments</b></em></summary>
+    <div>
+      <p><b>Multiple shipments</b></p>
+      <p>Multiple shipments can be sent in one request. To this end the Shipment field has been replaced by a Shipments field, which contains a list of Shipment elements. The response has also been modified. Instead of a ResponseShipment element, the response now consists of a GenerateLabelResponse element, which has a ResponseShipments field containing multiple ResponseShipment elements.</p>
+      <p>A maximum of four Shipment elements can be included in the Shipments field. When sending multiple signature images, keep in mind that the maximum size for the entire request is 200 KB. You can use this functionality with theGraphicFile|PDF|Merge printer types to generate one label document containing multiple labels. These "merged label" documents can be found in the MergedLabels response field.</p>
+      <p>If you want to send only one shipment, you have to specify the Shipments element containing one Shipment.</p>
+      <p><b>Multiple label printing</b></p>
+      <p>It is possible to generate multiple labels at once, and have these labels printed on a single A4-sheet. In order to use this functionality, you must select a different PrinterType. The PrinterType chosen determines the starting position of the label that is generated first. Below are the four printertypes that will produce an A4 sheet with multiple labels</p>
+      <p>GraphicFile|PDF|MergeA</p>
+      <p>GraphicFile|PDF|MergeB</p>
+      <p>GraphicFile|PDF|MergeC</p>
+      <p>GraphicFile|PDF|MergeD</p>
+      <p>In the figure below, the label starting position is shown for each type.</p>
+      <p>MergeA MergeB</p>
+      <p>MergeC MergeD</p>
+      <p>When a Merge type is chosen, the labels that follow are automatically printed on the next position. Note that four labels can be printed at once using this method, so you are always able to fill a complete A4 sheet.</p>
+      <p>Limitations</p>
+      <p>The following applies to the merge functionality described above:</p>
+      <p>MergeA-D cannot be used for labels which are not 10x15 cm</p>
+      <p>MergeA-D cannot be used for combilabels</p>
+      <p>MergeA-D cannot be used for COD-products, due to the COD-card being printed. </p>
+      <p>You can request up to four labels at once.</p>
+      <p><b>Multi-collo</b></p>
+      <p>Each request contains a single parcel. This parcel can be (part of) a single shipment or can be part of a multi-collo shipment. Each parcel in a multi-collo shipment must be sent in a separate request towards the API. For shipments within the Netherlands, multi collo shipments can be created. Using the API, this can be done as follows:</p>
+      <ul>
+        <li>Create a separate request per parcel to retrieve a label or to confirm the shipment (or both at once).</li>
+        <li>Connect the parcels by using the Group type in each request. Mention the amount of parcels in the shipment (GroupCount), the number of the specific Parcel (GroupSequence) and the main barcode of the shipment (MainBarcode) and specify Multicollo as the GroupType (GroupType 03).</li>
+        <li>Every parcel in the multi collo shipment has to have its own, unique barcode.</li>
+      </ul>
+      <p>For Extra@Home and Cargo shipments, the requests cannot be done separately for multicollo shipments. Multi collo shipments must be confirmed in one joint request.</p>
+  </details>
+  <br>
+  <p><b>Request size</b></p>
+  <p>The total request can have a maximum size of 200KB. Larger requests will not be accepted by the server for performance reasons. Requests that exceed this limit will not return a label, but a HTTP 404 error.</p>
+  <p><b>Easy Return Service (ERS)</b></p>
+  <p>Previously a standalone API but integrated in this service to growing demand for international returns. Productcode 4910 can be used in the ProductCodeDelivery attribute.</p>
+  <p><b>Destination EU / Rest of World</b></p>
+  <p>The Customs type is mandatory for ‘Parcels non-EU” (Rest of World) shipments and recommended for shipments with destination EU and not allowed for any other shipment types.</p>
+  <p><b>Street, HouseNr and HouseNrExt</b></p>
+  <p>The element StreetHouseNrExt is a combination of Street, HouseNr and HouseNrExt. This field has a dependency with the field Street. One of both fields must be filled mandatory. This field can be used in case the values of Street, HouseNr and HouseNrExt can’t be mapped separately before calling the API.The API will calculate a split of street name, house number and extension for you, and will afterwards use the split values. This might result in incorrect behavior for which PostNL can’t be held liable. Content in this field must be in the described order or otherwise the conversion will not work and place all values in the Street field.</p>
+  <p><b>Error handling</b></p>
+  <p>We would like to stress the need for a suitable error handling implementation on your side. If somehow, an error is received at your end upon sending your confirmation, this means that we could not process the information correctly and the successful delivery of the parcel is in jeopardy. We strive to return the error message with as much detail as possible so you can take proper action in order to improve the information about the parcel and retry.</p>
+  <p>Error codes have been specified in the API Generic document. Errors from the backend services will be caught and returned as standard API errors according to the generic error handling procedures in API.
+  </p>
+  </body>
+</html>
