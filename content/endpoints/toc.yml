@@ -35,6 +35,8 @@ toc:
       items:
         - page: Overview
           file: BarcodeOverview.md
+        - page: Guidelines
+          file: BarcodeGuidelines.html
         - generate:
           from: endpoint
           endpoint-name: Generate a unique barcode

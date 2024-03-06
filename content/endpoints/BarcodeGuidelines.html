@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html>
+
+<body>
+  <h1>Barcode</h1>
+  <p><b>Shipping requests</b></p>
+  <p>For most products you can omit the barcode from the Shipping API and a barcode will be generated automatically.
+    Should you choose to generate a barcode separately, it is recommended to automate these two API-calls (Barcode &
+    Labelling). The received barcode can then be used directly as input to generate the shipping label (Labelling API).
+  </p>
+  <p><b>Specifications barcodes</b></p>
+  <p>The barcodes contain three elements; Type, Range and Serie.</p>
+  <p><u>Type</u></p>
+  <p>A generated barcode of Type 3S is always 13 or 15 characters long and any other generated barcode (the so called
+    S10 barcodes) must be 13 characters.</p>
+  <p>The total length of the information in the request is validated. Length is calculated by length of Type + length of
+    Serie + length of Range. For type 3S, value must be 13 or 15. For all other types the combined length must be 13.
+    For S10-barcodes a 13th character is added to the result (a checkdigit). When the total length is not correct, the
+    request will be denied.</p>
+  <p><u>Range</u></p>
+  <p>The Range is the customer code that PostNL has configured for you. This code consists of 1-4 letters in the case of
+    barcodes where Type is 3S, otherwise it consists of 4 numbers (for S10-barcodes).</p>
+  <p>For certain products (International), generic S10 barcodes need to be used. These barcodes do not have a
+    customer-component in its syntax. In these cases, the field Range needs to contain the fixed syntax ‘NL' and the
+    Serie needs to be fixed at 00000000-99999999.</p>
+  <p><u>Serie</u></p>
+  <p>Barcode Serie in the format: "###000000-###000000", for example: 100000-20000. The range must consist of a minimal
+    difference of 100.000 for 3S barcodes (for S10-barcodes the serie should always be 0000-9999). Minimum length of the
+    serie is 6 characters; maximum length is 9 characters</p>
+  <p>It is allowed to add extra leading zeros at the beginning of the serie. For example: ‘000100000' causing the Total
+    generated barcode to end up with the required length of 13 or 15.</p>
+  <details>
+    <summary><em><b>Product groups</b></em></summary>
+    <div>
+      <p>See the <a href="#http/api-endpoints/send-track/barcode/guidelines">Products page</a> for more information about which barcode type and length
+        to use for the PostNL products.Specific barcode types and barcode lengths must be used per product group. Below
+        overview gives more insight in the way calls must be configured.</p>
+      <p><u>Dutch domestic shipments</u><br><i>Type: 3S</i></p>
+      <table>
+        <tbody>
+          <tr>
+            <td>
+              <p>Range</p>
+            </td>
+            <td>
+              <p>Serie</p>
+            </td>
+            <td>
+              <p>Total length</p>
+            </td>
+            <td>
+              <p>Example generated barcode</p>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <p>AB</p>
+            </td>
+            <td>
+              <p>00000000000-99999999999</p>
+            </td>
+            <td>
+              <p>15</p>
+            </td>
+            <td>
+              <p>3SAB83691658823</p>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <p>ABCD</p>
+            </td>
+            <td>
+              <p>0000000-9999999</p>
+            </td>
+            <td>
+              <p>13</p>
+            </td>
+            <td>
+              <p>3SABCD3427702</p>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <p>ABCD</p>
+            </td>
+            <td>
+              <p>987000000-987600000</p>
+            </td>
+            <td>
+              <p>15</p>
+            </td>
+            <td>
+              <p>3SABCD987446630</p>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <p><u>Parcels EU shipments</u><br><i>Type: 3S</i></p>
+      <table>
+        <tbody>
+          <tr>
+            <td>
+              <p>Range</p>
+            </td>
+            <td>
+              <p>Serie</p>
+            </td>
+            <td>
+              <p>Total length</p>
+            </td>
+            <td>
+              <p>Example generated barcode</p>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <p>ABCD</p>
+            </td>
+            <td>
+              <p>0000000-9999999</p>
+            </td>
+            <td>
+              <p>13</p>
+            </td>
+            <td>
+              <p>3SABCD1175003</p>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <p>ABC</p>
+            </td>
+            <td>
+              <p>10000000-20000000</p>
+            </td>
+            <td>
+              <p>13</p>
+            </td>
+            <td>
+              <p>3SABC19149187</p>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <p>A</p>
+            </td>
+            <td>
+              <p>5210500000-5210600000</p>
+            </td>
+            <td>
+              <p>13</p>
+            </td>
+            <td>
+              <p>3SA5210528875</p>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <p><u>Parcels Non-EU shipments</u><br><i>Type*: CC,CD,CP</i></p>
+      <table>
+        <tbody>
+          <tr>
+            <td>
+              <p>Range</p>
+            </td>
+            <td>
+              <p>Serie**</p>
+            </td>
+            <td>
+              <p>Total length</p>
+            </td>
+            <td>
+              <p>Example generated barcode</p>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <p>1234</p>
+            </td>
+            <td>
+              <p>0000-9999</p>
+            </td>
+            <td>
+              <p>13</p>
+            </td>
+            <td>
+              <p>CC123442066NL</p>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <p>1112</p>
+            </td>
+            <td>
+              <p>0000-9999</p>
+            </td>
+            <td>
+              <p>13</p>
+            </td>
+            <td>
+              <p>CD111208171NL</p>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <p>1122</p>
+            </td>
+            <td>
+              <p>0000-9999</p>
+            </td>
+            <td>
+              <p>13</p>
+            </td>
+            <td>
+              <p>CP112251335NL</p>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <p><small><i>* PostNL will provide you the exact barcode type to use with the PostNL Pakketten API. This should be either CC, CD, CF or CP.</i></small></p>
+      <p><small><i>** The Serie must always be 0000-9999 for use with Parcels Non-EU to be able to generate a unique number for you. The resulting (non-3S) barcode contains one more number than entered by {range} plus {serie}, this is the mandatory checkdigit. This number is calculated for you. The barcode will always end with NL.</i></small></p>
+      <p><u>International Mail &amp; Packet products shipments</u><br><i>Type: LA,UE,RI</i></p>
+      <table>
+        <tbody>
+          <tr>
+            <td>
+              <p>Range</p>
+            </td>
+            <td>
+              <p>Serie</p>
+            </td>
+            <td>
+              <p>Total length</p>
+            </td>
+            <td>
+              <p>Example generated barcode*</p>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <p>NL</p>
+            </td>
+            <td>
+              <p>00000000-99999999</p>
+            </td>
+            <td>
+              <p>13</p>
+            </td>
+            <td>
+              <p>LA599196732NL</p>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <p>NL</p>
+            </td>
+            <td>
+              <p>00000000-99999999</p>
+            </td>
+            <td>
+              <p>13</p>
+            </td>
+            <td>
+              <p>UE597256100NL</p>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <p>NL</p>
+            </td>
+            <td>
+              <p>00000000-99999999</p>
+            </td>
+            <td>
+              <p>13</p>
+            </td>
+            <td>
+              <p>RI543495045NL</p>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <p><small><i>* The resulting (non-3S) barcode contains one more number than entered by {range} plus {serie}, this is the mandatory checkdigit. This number is calculated for you. The barcode will always end with NL.</i></small></p>
+    </div>
+  </details>
+  <br>
+</body>
+
+</html>
