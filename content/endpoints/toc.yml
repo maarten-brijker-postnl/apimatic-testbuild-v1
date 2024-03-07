@@ -62,7 +62,9 @@ toc:
     - group: Checkout
       items:
         - page: Overview
-          file: CheckoutOverview.md           
+          file: CheckoutOverview.md 
+        - page: Guidelines
+          file: CheckoutGuidelines.html          
         - generate:
           from: endpoint
           endpoint-name: Checkout

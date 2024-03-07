@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+
+<body>
+  <h1>Checkout</h1>
+  <p><b>Use of the webservice</b></p>
+  <p>This API can be used to fill a webshop's checkout page.</p>
+  <p><b>Warnings</b></p>
+  <p>Warnings are returned when there is a functional problem with the request (e.g. when an address is not recognized,
+    or when no delivery options are available).</p>
+  <details>
+    <summary><em><b>Delivery options</b></em></summary>
+    <div>
+      <p><b>Sundays and public holidays</b></p>
+      <p>This service takes into account 'non-business' days like Sundays and public holidays.</p>
+      <p><b>Holiday sorting</b></p>
+      <p>It is possible to allow for holiday sorting. With holiday sorting enabled, you can tell PostNL that you will be
+        able to deliver the parcel to PostNL during holidays.</p>
+      <p><b>Delivery options</b></p>
+      <p>It is possible to specify which delivery options should be considered. The possible values are:</p>
+      <table>
+        <colgroup>
+          <col>
+          <col>
+        </colgroup>
+        <tbody>
+          <tr>
+            <td>
+              <p><b>Option</b></p>
+            </td>
+            <td>
+              <p><b>Description</b></p>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <p>Daytime</p>
+            </td>
+            <td>
+              <p>Daytime delivery</p>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <p>Evening</p>
+            </td>
+            <td>
+              <p>Evening delivery</p>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <p>Sunday</p>
+            </td>
+            <td>
+              <p>Sunday delivery</p>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <p>Today*</p>
+            </td>
+            <td>
+              <p>Delivery on day of handover to PostNL</p>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <p>Sameday</p>
+            </td>
+            <td>
+              <p>Sameday delivery</p>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <p>08:00-09:00</p>
+            </td>
+            <td>
+              <p>Guaranteed delivery between the timeframe specified</p>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <p>08:00-10:00</p>
+            </td>
+            <td>
+              <p>Guaranteed delivery between the timeframe specified</p>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <p>08:00-12:00</p>
+            </td>
+            <td>
+              <p>Guaranteed delivery between the timeframe specified</p>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <p>08:00-17:00</p>
+            </td>
+            <td>
+              <p>Guaranteed delivery between the timeframe specified</p>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <p>Pickup</p>
+            </td>
+            <td>
+              <p>Pickup at PostNL location</p>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <p><br>All the above delivery options can be used in the request of the Checkout API. PostNL will charge an
+        additional amount for delivery of the parcels with the options Evening, Morning, (After)Noon, Sameday, Delivery
+        on demand, Guaranteed delivery, Sunday and Today. For specific costs and the activation of this delivery
+        options, it is recommended to consult your PostNL Pakketten account manager. For Sunday, Sameday and Today
+        delivery it is even mandatory to consult your account manager.</p>
+      <p><small><i>* The Today delivery option will be returned on any given day (Mon – Sun) but will only be on the
+            first
+            following business day.</i></small></p>
+      <p><b>Visual assets</b></p>
+      <p>The <a
+          href="https://developer.postnl.nl/api/assets/blt43aa441bfc1e29f2/bltda813334a12d25c8/64d5f4d9ab5a2b3cc02fa42f/Visual_assets.zip">Visual
+          Assets</a> can be useful to create a delivery options frame in your checkout.</p>
+      <p><b>Sustainability options</b></p>
+      <p>You can show customers when their parcel can be delivered sustainably. In the response of the API the follow
+        sustainability codes be distinguished:</p>
+      <p>Code 01 = Sustainable delivery<br>Code 02 = Sustainable option<br>Code 03 = Sustainable delivery + Sustainable
+        option<br>Code 00 - Not available</p>
+      <p>You can build in the corresponding communication messages in your checkout; </p>
+      <p>Sustainably delivery; "Duurzaam bezorgd"<br>Sustainable option; "Duurzame optie"</p>
+      <p>Not available: Not a sustainable option (yet). </p>
+      <p><i>Sustainable delivery</i></p>
+      <ol>
+        <li>PostNL delivers the parcel to your address with an electric vehicle or with a sustainable fuel vehicle.</li>
+        <li>PostNL delivers the parcel to a PostNL location with an electric vehicle or with a sustainable fuel vehicle.
+        </li>
+      </ol>
+      <p><i>Sustainable option</i></p>
+      <p>If we can deliver the package at a PostNL retail location or in a parcel machine we deliver fewer kilometers.
+        We can also deliver multiple parcels at 1 (retail) point. This results in less CO2 emissions.</p>
+      <p>In the below file you can find the visual assets which you can you use in your checkout to show the
+        sustainability options.</p>
+      <p><a
+          href="https://developer.postnl.nl/api/assets/blt43aa441bfc1e29f2/blt75ee821345dcda39/64d5069d34e1ffa4c4a86ace/sustainability-delivery-options.zip">Visual
+          assets</a></p>
+    </div>
+  </details>
+</body>
+
+</html>
