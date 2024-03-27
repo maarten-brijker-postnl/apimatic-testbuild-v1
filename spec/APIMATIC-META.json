@@ -2,7 +2,7 @@
   "Description": "This is an API description. Add as many details as you like.",
   "MergeConfiguration": {
       "MergeApis": true,
-      "MergedApiName": "PostNLSDK"
+      "MergedApiName": "PostNL"
   },
   "MergeSettings": {
     "AppendParentNameInNamingConflict": true
